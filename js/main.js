@@ -29,8 +29,8 @@ var generateMap = function(datasets) {
 
   let projection = d3.geoBonne() // because
     .center([-.11, 51.51]) // london, uk
-    .scale(100000) // big number
-    .translate([width / 2, height /2]); // centers the map of the centres
+    .scale(115000) // big number
+    .translate([width / 2, (height / 2) - height * .05]); // centers the map w/ 5% vertical offset
 
   let svg = d3.select('body').append('svg') // create svg element
     .attr('class', 'map') // define class
