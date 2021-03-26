@@ -1,6 +1,6 @@
 
 // define promises as d3 method objects
-const promises = [d3.json('data/london_boroughs.json'), d3.json("data/london_centres.json")];
+const promises = [d3.json('data/london_boroughs.json'), d3.json("data/london_centres.json"), d3.csv('data/london_nte_floorspace.csv')];
 
 // pass method objects to Promise constructor
 dataPromises = Promise.all(promises);
@@ -9,7 +9,8 @@ dataPromises = Promise.all(promises);
 dataPromises.then(function(data) {
   const datasets = {
     boroughs: data[0],
-    centres: data[1]
+    centres: data[1],
+    floorspace: data[2]
   };
 
     console.log(datasets);
@@ -57,5 +58,11 @@ var generateMap = function(datasets) {
     .append('path')  // append path to svg
     .attr('d', path);  // assign path data to svg path
 
+    let attributes = datasets.floorspace;
+  colorize(attributes)
 
 };
+
+function colorize(attributes){
+
+}
