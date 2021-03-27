@@ -13,7 +13,7 @@ dataPromises.then(function(data) {
     floorspace: data[2]
   };
 
-    console.log(datasets);
+
     generateMap(datasets);
 
 });
@@ -42,7 +42,7 @@ var generateMap = function(datasets) {
     .projection(projection); // asssign projection
 
   let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.london_boroughs).features;
-  console.log(boroughsGeoJSON)
+
   svg.selectAll('path') // create path object placeholders
     .attr('class', 'borough') // assign class
     .data(boroughsGeoJSON) // feed d3
@@ -80,11 +80,42 @@ var generateMap = function(datasets) {
     let attributes = datasets.floorspace;
 
 
+  dataJoin(centresGeoJSON, attributes);
 
   colorize(attributes)
 
 };
 
-function colorize(attributes){
+var colorize = function(attributes){
 
-}
+};
+
+var dataJoin = function(geodata, attributes){
+
+  // pandas for javascript, anyone? ^_^
+
+  // is it a triple-loop?  it's a triple-loop.  Here we go.
+
+  for (let i = 0; i < geodata.length; i++){  // start with geojson items
+    let key = geodata[i].properties.sitename;  // town centre sitename is key
+    for (let j = 0; j < attributes.length; j++){ // check against attributes array
+      let lock = attributes[j].town_centre;  // find matching row name in csv data
+
+      if (key === lock){  // a match!
+        let centre = geodata[i].properties;  // attribute values will be assigned to this
+        let data = attributes[j];  // individual row/col pairs
+
+        for (let att in data){ // loop over attributes
+          let val = data[att]; // assign value to check whether text or number
+
+          // this is the join- it's also a type function to separately parse floats to avoid converting strings to NaN
+          if (val >= 0) {
+            centre[att] = parseFloat(val)
+          } else {
+            centre[att] = val;
+          }
+        }
+      }
+    }
+  }
+};
