@@ -13,6 +13,10 @@ dataPromises.then(function(data) {
     floorspace: data[2]
   };
 
+  attArray = Object.keys(datasets.floorspace[0]); // list of attributes
+
+  let expressed = attArray[3]; // initial choropleth expressed
+
   generateMap(datasets);
 
 });
@@ -22,7 +26,7 @@ dataPromises.catch(function(){
   console.log("Promises not kept.")
 });
 
-var generateMap = function(datasets) {
+var generateMap = function(datasets, attArray) {
 
   let width = 1200,
     height = 800;
@@ -59,11 +63,42 @@ var generateMap = function(datasets) {
 
   addCentres(map, path, centresGeoJSON); // attach centres to svg
 
-  colorize(attributes)
+  colorize(map, attributes)
 
 };
 
-var colorize = function(attributes){
+var colorize = function(map, attributes){
+
+  console.log(colorbrewer);
+
+  const colors = [colorbrewer.BuGn['5'],
+                colorbrewer.OrRd['5'],
+                colorbrewer.PuBuGn['5'],
+                colorbrewer.RdPu['5'],
+                colorbrewer.Blues['5'],
+                colorbrewer.Oranges['5'],
+                colorbrewer.PuRd['5'],
+                colorbrewer.Greens['5'],
+                ];
+
+  for (let i = 0; i < attArray.length; i++){
+
+    let attVals = [];
+
+    let att = attArray[i];
+
+    for (let row = 0; row < attributes.length; row++){
+      let val = attributes[row][att];
+      if (val >= 0){
+        attVals.push(val);
+      }
+
+
+    }
+  console.log(attVals);
+  }
+
+
 
 };
 
