@@ -159,7 +159,6 @@ var dataJoin = function(geodata, attributes){
 var addBoroughs = function(map, path, boroughsGeoJSON){
 
   map.selectAll('path') // create path object placeholders
-    .attr('class', 'borough') // assign class
     .data(boroughsGeoJSON) // feed d3
     .enter() // enter topology array
     .append('path') // append path to svg
@@ -167,6 +166,7 @@ var addBoroughs = function(map, path, boroughsGeoJSON){
     .attr('id', function(d){
       return d.properties.NAME // tag name to path
     })
+    .classed('borough', true)
     .style('fill', 'black') // classy night time fill
     .style('stroke', 'white') // classy night time outlines
     .style('stroke-width', '.25px'); // really really classy outlines
@@ -186,15 +186,15 @@ var addCentres = function(map, path, centresGeoJSON, attributes){
   function MyColors(attVals){
     for (let i = 0; i < colorKeys.length; i++){
       let att = colorKeys[i];
-
       let val = attVals[att];
       let scale = (colorScales[att].scale);
+
       this[att] = scale(val);
       }
     }
 
   map.selectAll('path')  // create path object placeholders
-    .attr('class', 'centre')  // assign class
+
     .data(centresGeoJSON)  // feed d3
     .enter()  // enter topology array
     .append('path')  // append path to svg
@@ -202,7 +202,8 @@ var addCentres = function(map, path, centresGeoJSON, attributes){
     .attr('id', function(d){
       return d.properties.sitename  // tag sitename to path
   })
-    .attr('myColors', function(){
+    .classed('centre', true)
+    .property('myColors', function(){
       let attVals = {};
       let id = this.id;
       for (let i = 0; i < colorKeys.length; i++) {
@@ -214,8 +215,16 @@ var addCentres = function(map, path, centresGeoJSON, attributes){
         }
       }
       let myColors = new MyColors(attVals);
+
       return (myColors)
 
 
       })
+    .style('fill', function(){
+
+      return this.myColors[colorKeys[8]]
+
+    })
+
+
 };
