@@ -39,7 +39,7 @@ var generateMap = function(datasets, attArray) {
   const zoom = d3.zoom()
     .scaleExtent([1, 8])
     .on('zoom', function(e){
-      svg.selectAll('path')
+      map.selectAll('path')
         .attr('transform', e.transform);
     });
 
@@ -61,13 +61,11 @@ var generateMap = function(datasets, attArray) {
 
   addBoroughs(map, path, boroughsGeoJSON); // attach boroughs to svg
 
-  addCentres(map, path, centresGeoJSON); // attach centres to svg
-
-  colorize(map, attributes)
+  addCentres(map, path, centresGeoJSON, attributes); // attach centres to svg
 
 };
 
-var colorize = function(map, attributes){
+var colorScaler = function(map, attributes){
 
   const colors = [colorbrewer.BuGn['5'],
                 colorbrewer.OrRd['5'],
@@ -123,9 +121,9 @@ var colorize = function(map, attributes){
                                 .range(colors[i])
                                 .domain(breaks);
 
-    //  NEXT, COMPILE PATH ATTVAL COLOR OBJECT AND ASSIGN TO PATH
-  }
 
+  }
+  return colorScales;
 };
 
 var dataJoin = function(geodata, attributes){
@@ -174,7 +172,26 @@ var addBoroughs = function(map, path, boroughsGeoJSON){
     .style('stroke-width', '.25px'); // really really classy outlines
 };
 
-var addCentres = function(map, path, centresGeoJSON){
+var addCentres = function(map, path, centresGeoJSON, attributes){
+
+  // in converting attribute value to color value via color scale, each areal unit has a possible colorspace of (in
+  // this case) 9 values.  In order to provide convenient and efficient color switching, we'll simply use the color
+  // scales object created in colorize() to define an object which contains the color value of each attribute
+  // for each town centre.  This will be called by .style() when the attribute selector radio button changes state.
+
+  let colorScales = colorScaler(map, attributes);
+
+  let colorKeys = Object.keys(colorScales);  // we only want numerical values from here on out
+
+  function MyColors(attVals){
+    for (let i = 0; i < colorKeys.length; i++){
+      let att = colorKeys[i];
+
+      let val = attVals[att];
+      let scale = (colorScales[att].scale);
+      this[att] = scale(val);
+      }
+    }
 
   map.selectAll('path')  // create path object placeholders
     .attr('class', 'centre')  // assign class
@@ -184,5 +201,21 @@ var addCentres = function(map, path, centresGeoJSON){
     .attr('d', path) // assign path data to svg path
     .attr('id', function(d){
       return d.properties.sitename  // tag sitename to path
-  });
+  })
+    .attr('myColors', function(){
+      let attVals = {};
+      let id = this.id;
+      for (let i = 0; i < colorKeys.length; i++) {
+        let att = colorKeys[i];
+        for (let row = 0; row < attributes.length; row++){
+          if (attributes[row].town_centre === id){
+            attVals[att] = attributes[row][att]
+          }
+        }
+      }
+      let myColors = new MyColors(attVals);
+      return (myColors)
+
+
+      })
 };
