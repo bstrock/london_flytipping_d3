@@ -69,8 +69,6 @@ var generateMap = function(datasets, attArray) {
 
 var colorize = function(map, attributes){
 
-  console.log(colorbrewer);
-
   const colors = [colorbrewer.BuGn['5'],
                 colorbrewer.OrRd['5'],
                 colorbrewer.PuBuGn['5'],
@@ -79,26 +77,54 @@ var colorize = function(map, attributes){
                 colorbrewer.Oranges['5'],
                 colorbrewer.PuRd['5'],
                 colorbrewer.Greens['5'],
+                colorbrewer.YlOrBr['5']
                 ];
 
-  for (let i = 0; i < attArray.length; i++){
+  let colorScales = {};
 
-    let attVals = [];
+  for (let i = 0; i < attArray.length; i++){  // loop through attributes
 
-    let att = attArray[i];
+    let att = attArray[i];  // makes it easier to read
 
-    for (let row = 0; row < attributes.length; row++){
-      let val = attributes[row][att];
-      if (val >= 0){
-        attVals.push(val);
+    colorScales[att] = {
+      values: [],
+      domain: [],
+      scale: null
+    };  // placeholder for attribute
+
+    for (let row = 0; row < attributes.length; row++){  // loop through town centres
+      let val = attributes[row][att];  // this is either a float or a string
+      if (val >= 0){  // if its a float
+        colorScales[att].values.push(val);  // it goes in the array
+      } else {  // if not
+        delete colorScales[att];  // bye bye
+        break  // strings don't need this next bit
       }
 
-
+      colorScales[att].domain = [d3.min(colorScales[att].values), d3.max(colorScales[att].values)];  // here's the domain for this attribute
     }
-  console.log(attVals);
   }
 
+  let colorKeys = Object.keys(colorScales);  // we only want numerical values from here on out
 
+  for (let i = 0; i < colorKeys.length; i++) {  // loop through attributes
+    let att = colorKeys[i];  // capture attribute
+    let clusters = ss.ckmeans(colorScales[att].values, 5);  // determine attribute value clusters
+    let breaks = [];  // break values stored here
+    for (let j = 0; j < clusters.length; j++){  // loop through clusters
+      breaks.push(d3.min(clusters[j]))  // add cluster min to breaks
+    }
+    breaks.shift();  // drop first value to create 4 breakpoints
+
+    // at last.
+    // this block creates a color scale with a unique color for each numerical attribute
+    // colorScales[att].scale(x) will always return a hex color value!
+    colorScales[att].scale = d3.scaleThreshold()
+                                .range(colors[i])
+                                .domain(breaks);
+
+    //  NEXT, COMPILE PATH ATTVAL COLOR OBJECT AND ASSIGN TO PATH
+  }
 
 };
 
