@@ -26,8 +26,41 @@
 <body>
 
   <!-- Add your site or application content here -->
-  <p>Hello world! This is HTML5 Boilerplate.</p>
+  <div class="container-fluid">
+    <div class="jumbotron">
+      London By Night
+    </div>
+  </div>
 
+  <div class="row">
+    <div class="col-8">
+      <div id="map-container"></div>
+  </div>
+    <div class="col-4">
+      <div id="info-panel" class="container">
+        <div id="radio-buttons" class="card">
+          <input type="radio" name="attr" value="all">
+            <label for="all">All Night-time Entertainment</label>
+          <input type="radio" name="attr" value="booze">
+            <label for="booze">Drinking Establishments</label>
+          <input type="radio" name="attr" value="takeaway">
+            <label for="takeaway">Hot Food Takeaways</label>
+          <input type="radio" name="attr" value="food">
+            <label for="food">Restaurants</label>
+          <input type="radio" name="attr" value="hotels">
+            <label for="hotels">Hotels</label>
+          <input type="radio" name="attr" value="museums">
+            <label for="museums">Galleries & Museums</label>
+          <input type="radio" name="attr" value="cinema">
+            <label for="cinema">Cinemas</label>
+          <input type="radio" name="attr" value="theatre">
+            <label for="theare">Theatres</label>
+          <input type="radio" name="attr" value="clubs">
+            <label for="clubs">Night Clubs</label>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- SCRIPT LINKS -->
   <script src="js/vendor/modernizr-3.11.2.min.js"></script>

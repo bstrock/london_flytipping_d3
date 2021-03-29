@@ -46,7 +46,7 @@ var generateMap = function(datasets, attArray) {
   const path = d3.geoPath() // define geopath generator
     .projection(projection); // asssign projection
 
-  let map = d3.select('body').append('svg') // create svg element
+  let map = d3.select('#map-container').append('svg') // create svg element
     .attr('class', 'map') // define class
     .attr('width', width) // assign width
     .attr('height', height); // assign height
@@ -174,6 +174,7 @@ var addBoroughs = function(map, path, boroughsGeoJSON){
 
 var addCentres = function(map, path, centresGeoJSON, attributes){
 
+  // this is where the centre paths are created and added.  when they are added, they are also given a colorspace.
   // in converting attribute value to color value via color scale, each areal unit has a possible colorspace of (in
   // this case) 9 values.  In order to provide convenient and efficient color switching, we'll simply use the color
   // scales object created in colorize() to define an object which contains the color value of each attribute
@@ -228,3 +229,4 @@ var addCentres = function(map, path, centresGeoJSON, attributes){
 
 
 };
+
