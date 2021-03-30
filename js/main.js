@@ -1,20 +1,20 @@
 
 // define promises as d3 method objects
-const promises = [d3.json('data/london_boroughs.json'), d3.json("data/london_centres.json"), d3.csv('data/london_nte_floorspace.csv')];
+const promises = [d3.json('data/london_boroughs.json'), d3.csv('data/fly-tipping-borough.csv')];
 
 // pass method objects to Promise constructor
 const dataPromises = Promise.all(promises);
 
 // call promises, construct datasets object, pass to map generation function
 dataPromises.then(function(data) {
-  console.log(data)
+  console.log(data);
   const datasets = {
     boroughs: data[0],
-    centres: data[1],
-    floorspace: data[2]
+    flyTipping: data[1]
   };
 
-  attArray = Object.keys(datasets.floorspace[0]); // list of attributes
+  attArray = Object.keys(datasets.flyTipping[0]); // list of attributes
+  attArray.slice(2);
 
   let expressed = attArray[3]; // initial choropleth expressed
 
@@ -53,16 +53,12 @@ var generateMap = function(datasets, attArray) {
     .attr('height', height); // assign height
 
   map.call(zoom);
-  console.log(datasets.centres.objects)
   let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.London_Borough_Excluding_MHW).features;
-  let centresGeoJSON = topojson.feature(datasets.centres, datasets.centres.objects.main_Town_Centre_Boundaries).features;
-  let attributes = datasets.floorspace;
+  let attributes = datasets.flyTipping;
 
-  dataJoin(centresGeoJSON, attributes); // get those attributes where they belong
+  dataJoin(boroughsGeoJSON, attributes); // get those attributes where they belong
 
-  addBoroughs(map, path, boroughsGeoJSON); // attach boroughs to svg
-
-  addCentres(map, path, centresGeoJSON, attributes); // attach centres to svg
+  addBoroughs(map, path, boroughsGeoJSON, attributes); // attach centres to svg
 
   addRadioButtons(map);
 
@@ -77,8 +73,8 @@ var colorScaler = function(map, attributes){
                 colorbrewer.Blues['5'],
                 colorbrewer.Oranges['5'],
                 colorbrewer.PuRd['5'],
-                colorbrewer.Greens['5'],
-                colorbrewer.YlOrBr['5']
+                colorbrewer.YlOrBr['5'],
+                colorbrewer.GnBu['5']
                 ];
 
   let colorScales = {};
@@ -131,17 +127,19 @@ var colorScaler = function(map, attributes){
 
 var dataJoin = function(geodata, attributes){
 
+  console.log(attributes);
+
   // pandas for javascript, anyone? ^_^
 
   // is it a triple-loop?  it's a triple-loop.  Here we go.
 
   for (let i = 0; i < geodata.length; i++){  // start with geojson items
-    let key = geodata[i].properties.sitename;  // town centre sitename is key
+    let key = geodata[i].properties.NAME;  // town centre sitename is key
     for (let j = 0; j < attributes.length; j++){ // check against attributes array
-      let lock = attributes[j].town_centre;  // find matching row name in csv data
+      let lock = attributes[j].Area;  // find matching row name in csv data
 
       if (key === lock){  // a match!
-        let centre = geodata[i].properties;  // attribute values will be assigned to this
+        let borough = geodata[i].properties;  // attribute values will be assigned to this
         const data = attributes[j];  // individual row/col pairs
 
         for (let att in data){ // loop over attributes
@@ -149,9 +147,9 @@ var dataJoin = function(geodata, attributes){
 
           // this is the join- it's also a type function to separately parse floats to avoid converting strings to NaN
           if (val >= 0) {
-            centre[att] = parseFloat(val)
+            borough[att] = parseFloat(val)
           } else {
-            centre[att] = val;
+            borough[att] = val;
           }
         }
       }
@@ -159,23 +157,8 @@ var dataJoin = function(geodata, attributes){
   }
 };
 
-var addBoroughs = function(map, path, boroughsGeoJSON){
 
-  map.selectAll('path') // create path object placeholders
-    .data(boroughsGeoJSON) // feed d3
-    .enter() // enter topology array
-    .append('path') // append path to svg
-    .attr('d', path) // assign path data to svg path
-    .attr('id', function(d){
-      return d.properties.NAME // tag name to path
-    })
-    .classed('borough', true)
-    .style('fill', 'black') // classy night time fill
-    .style('stroke', 'white') // classy night time outlines
-    .style('stroke-width', '.25px'); // really really classy outlines
-};
-
-var addCentres = function(map, path, centresGeoJSON, attributes){
+var addBoroughs = function(map, path, boroughsGeoJSON, attributes){
 
   // this is where the centre paths are created and added.  when they are added, they are also given a colorspace.
   // in converting attribute value to color value via color scale, each areal unit has a possible colorspace of (in
@@ -199,22 +182,24 @@ var addCentres = function(map, path, centresGeoJSON, attributes){
 
   map.selectAll('path')  // create path object placeholders
 
-    .data(centresGeoJSON)  // feed d3
+    .data(boroughsGeoJSON)  // feed d3
     .enter()  // enter topology array
     .append('path')  // append path to svg
     .attr('d', path) // assign path data to svg path
     .attr('id', function(d){
-      return d.properties.sitename  // tag sitename to path
+      return d.properties.NAME  // tag sitename to path
   })
-    .classed('centre', true)  // add class
+    .classed('borough', true)  // add class
     .property('myColors', function(){  // attach color library to path
       let attVals = {};  // placeholder object
       let id = this.id;  // store id
       for (let i = 0; i < colorKeys.length; i++) {  // iterate through numerical attributes
         let att = colorKeys[i];  // store attribute name
         for (let row = 0; row < attributes.length; row++){  // loop through town centres
-          if (attributes[row].town_centre === id){  // match id to table row
+          if (attributes[row].Area === id){  // match id to table row
             attVals[att] = attributes[row][att]  // append cell values to attribute values array
+            if (att === "Change From Five Years Ago"){
+            }
           }
         }
       }
@@ -235,52 +220,50 @@ var addRadioButtons = function(map) {
   d3.selectAll('input')
     .on('click', function(){
       switch (this.value){
-        case 'all':
-          pathColorizer(map, 'total_nte');
+        case 'total':
+          pathColorizer(map, 'Total Incidents');
           break;
 
-        case 'booze':
-          pathColorizer(map, 'public_houses_other_drinking');
+        case 'actions':
+          pathColorizer(map, 'Total Action Taken');
           break;
 
-        case 'takeaway':
-          pathColorizer(map, 'hot_food_takeaways');
+        case 'letters':
+          pathColorizer(map, 'Warning Letters');
         break;
 
-        case 'food':
-          pathColorizer(map, 'restaurants_cafes');
+        case 'penalty':
+          pathColorizer(map, 'Fixed Penalty Notices');
           break;
 
-        case 'hotels':
-          pathColorizer(map, 'hotels');
+        case 'statutory':
+          pathColorizer(map, 'Statutory Notices');
           break;
 
-        case 'museums':
-          pathColorizer(map, 'art_galleries_museums');
+        case 'cautions':
+          pathColorizer(map, 'Formal Cautions');
         break;
 
-        case 'cinemas':
-          pathColorizer(map, 'cinema');
+        case 'prosecutions':
+          pathColorizer(map, 'Prosecutions');
           break;
 
-        case 'theatre':
-          pathColorizer(map, 'theatres');
+        case 'change-one':
+          pathColorizer(map, 'Change From Previous Year');
           break;
 
-        case 'clubs':
-          pathColorizer(map, 'night_clubs');
-
-        break;
+        case 'change-five':
+          pathColorizer(map, 'Change From Five Years Ago');
+          break;
       }
     })
 };
 
 let pathColorizer = function(map, attribute) {
-  let paths = map.selectAll('.centre');
+  let paths = map.selectAll('.borough');
   let pathArray = paths._groups[0];
     for (let i = 0; i < pathArray.length; i++){
             let color = pathArray[i].myColors[attribute];
-            console.log(color);
             pathArray[i].style = 'fill: ' + color;
           }
 };
