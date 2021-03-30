@@ -5,6 +5,8 @@ const promises = [d3.json('data/london_boroughs.json'), d3.csv('data/fly-tipping
 // pass method objects to Promise constructor
 const dataPromises = Promise.all(promises);
 
+
+
 // call promises, construct datasets object, pass to map generation function
 dataPromises.then(function(data) {
   console.log(data);
@@ -34,7 +36,7 @@ var generateMap = function(datasets, attArray) {
 
   const projection = d3.geoBonne() // because
     .center([-.11, 51.51]) // london, uk
-    .scale(115000) // big number
+    .scale(112000) // big number
     .translate([width / 2, (height / 2) - height * .05]); // centers the map w/ 5% vertical offset
 
   const zoom = d3.zoom()
