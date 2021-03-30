@@ -7,6 +7,7 @@ const dataPromises = Promise.all(promises);
 
 // call promises, construct datasets object, pass to map generation function
 dataPromises.then(function(data) {
+  console.log(data)
   const datasets = {
     boroughs: data[0],
     centres: data[1],
@@ -52,9 +53,9 @@ var generateMap = function(datasets, attArray) {
     .attr('height', height); // assign height
 
   map.call(zoom);
-
-  let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.london_boroughs).features;
-  let centresGeoJSON = topojson.feature(datasets.centres, datasets.centres.objects.london_centres).features;
+  console.log(datasets.centres.objects)
+  let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.London_Borough_Excluding_MHW).features;
+  let centresGeoJSON = topojson.feature(datasets.centres, datasets.centres.objects.main_Town_Centre_Boundaries).features;
   let attributes = datasets.floorspace;
 
   dataJoin(centresGeoJSON, attributes); // get those attributes where they belong
@@ -62,6 +63,8 @@ var generateMap = function(datasets, attArray) {
   addBoroughs(map, path, boroughsGeoJSON); // attach boroughs to svg
 
   addCentres(map, path, centresGeoJSON, attributes); // attach centres to svg
+
+  addRadioButtons(map);
 
 };
 
@@ -203,30 +206,81 @@ var addCentres = function(map, path, centresGeoJSON, attributes){
     .attr('id', function(d){
       return d.properties.sitename  // tag sitename to path
   })
-    .classed('centre', true)
-    .property('myColors', function(){
-      let attVals = {};
-      let id = this.id;
-      for (let i = 0; i < colorKeys.length; i++) {
-        let att = colorKeys[i];
-        for (let row = 0; row < attributes.length; row++){
-          if (attributes[row].town_centre === id){
-            attVals[att] = attributes[row][att]
+    .classed('centre', true)  // add class
+    .property('myColors', function(){  // attach color library to path
+      let attVals = {};  // placeholder object
+      let id = this.id;  // store id
+      for (let i = 0; i < colorKeys.length; i++) {  // iterate through numerical attributes
+        let att = colorKeys[i];  // store attribute name
+        for (let row = 0; row < attributes.length; row++){  // loop through town centres
+          if (attributes[row].town_centre === id){  // match id to table row
+            attVals[att] = attributes[row][att]  // append cell values to attribute values array
           }
         }
       }
-      let myColors = new MyColors(attVals);
+      let myColors = new MyColors(attVals);  // construct color library for this path from constructor
 
-      return (myColors)
-
-
+      return (myColors)  // send library to path
       })
     .style('fill', function(){
-
-      return this.myColors[colorKeys[8]]
+      // initial color
+      return this.myColors[colorKeys[0]]
 
     })
 
 
 };
 
+var addRadioButtons = function(map) {
+  d3.selectAll('input')
+    .on('click', function(){
+      switch (this.value){
+        case 'all':
+          pathColorizer(map, 'total_nte');
+          break;
+
+        case 'booze':
+          pathColorizer(map, 'public_houses_other_drinking');
+          break;
+
+        case 'takeaway':
+          pathColorizer(map, 'hot_food_takeaways');
+        break;
+
+        case 'food':
+          pathColorizer(map, 'restaurants_cafes');
+          break;
+
+        case 'hotels':
+          pathColorizer(map, 'hotels');
+          break;
+
+        case 'museums':
+          pathColorizer(map, 'art_galleries_museums');
+        break;
+
+        case 'cinemas':
+          pathColorizer(map, 'cinema');
+          break;
+
+        case 'theatre':
+          pathColorizer(map, 'theatres');
+          break;
+
+        case 'clubs':
+          pathColorizer(map, 'night_clubs');
+
+        break;
+      }
+    })
+};
+
+let pathColorizer = function(map, attribute) {
+  let paths = map.selectAll('.centre');
+  let pathArray = paths._groups[0];
+    for (let i = 0; i < pathArray.length; i++){
+            let color = pathArray[i].myColors[attribute];
+            console.log(color);
+            pathArray[i].style = 'fill: ' + color;
+          }
+};
