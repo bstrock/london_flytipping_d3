@@ -95,6 +95,39 @@ path {
 
 .radio-box {
   border: 1px black solid;
+  margin-left: 2em;
+}
+
+#info-panel{
+  height: 800px;;
+}
+
+.map {
+  border: 1px black solid;
+  margin-left: 2em;
+}
+
+.chart {
+  border: 1px black solid;
+}
+
+.stop-left {
+  stop-color: #000000;
+}
+
+.stop-right {
+  stop-color: #fff;
+}
+
+#mainGradient {
+  x1: 100%;
+  y1: 100%;
+  x2: 0%;
+  y2: 0%;
+}
+
+.filled {
+  fill: url(#mainGradient);
 }
 
 /* ==========================================================================

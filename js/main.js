@@ -5,6 +5,8 @@ const promises = [d3.json('data/london_boroughs.json'), d3.csv('data/fly-tipping
 // pass method objects to Promise constructor
 const dataPromises = Promise.all(promises);
 
+var domains = {}; // this will hold our domains
+
 
 
 // call promises, construct datasets object, pass to map generation function
@@ -18,8 +20,6 @@ dataPromises.then(function(data) {
   attArray = Object.keys(datasets.flyTipping[0]); // list of attributes
   attArray.slice(2);
 
-  let expressed = attArray[3]; // initial choropleth expressed
-
   generateMap(datasets);
 
 });
@@ -29,9 +29,9 @@ dataPromises.catch(function(){
   console.log("Promises not kept.")
 });
 
-var generateMap = function(datasets, attArray) {
+var generateMap = function(datasets) {
 
-  let width = 1200,
+  let width = window.innerWidth * .65,
     height = 800;
 
   const projection = d3.geoBonne() // because
@@ -52,7 +52,8 @@ var generateMap = function(datasets, attArray) {
   let map = d3.select('#map-container').append('svg') // create svg element
     .attr('class', 'map') // define class
     .attr('width', width) // assign width
-    .attr('height', height); // assign height
+    .attr('height', height) // assign height
+    .style('background-color', 'black');
 
   map.call(zoom);
   let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.London_Borough_Excluding_MHW).features;
@@ -63,6 +64,8 @@ var generateMap = function(datasets, attArray) {
   addBoroughs(map, path, boroughsGeoJSON, attributes); // attach centres to svg
 
   addRadioButtons(map);
+
+  chartFactory(map, attributes);
 
 };
 
@@ -100,7 +103,10 @@ var colorScaler = function(map, attributes){
         break  // strings don't need this next bit
       }
 
-      colorScales[att].domain = [d3.min(colorScales[att].values), d3.max(colorScales[att].values)];  // here's the domain for this attribute
+      let domain = [d3.min(colorScales[att].values), d3.max(colorScales[att].values)];  // here's the domain for this attribute
+      colorScales[att].domain = domain;  // assign it to the colorscale
+      domains[att] = domain; // assign it to the global to compute graphs
+
     }
   }
 
@@ -172,6 +178,7 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes){
 
   let colorKeys = Object.keys(colorScales);  // we only want numerical values from here on out
 
+  // constructor function
   function MyColors(attVals){
     for (let i = 0; i < colorKeys.length; i++){
       let att = colorKeys[i];
@@ -199,8 +206,8 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes){
         let att = colorKeys[i];  // store attribute name
         for (let row = 0; row < attributes.length; row++){  // loop through town centres
           if (attributes[row].Area === id){  // match id to table row
-            attVals[att] = attributes[row][att]  // append cell values to attribute values array
-            if (att === "Change From Five Years Ago"){
+            attVals[att] = attributes[row][att]; // append cell values to attribute values array
+            if (att === "Change From Five Years Ago"){ // why is this here?
             }
           }
         }
@@ -219,53 +226,132 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes){
 };
 
 var addRadioButtons = function(map) {
+  // a click switches the radio button, then runs colorizer function on all boroughs for that attribute
+
   d3.selectAll('input')
     .on('click', function(){
       switch (this.value){
         case 'total':
-          pathColorizer(map, 'Total Incidents');
+          pathColorizer(map, 'Total Incidents');  // paths first, then bars
+          barChanger(map);
           break;
 
         case 'actions':
           pathColorizer(map, 'Total Action Taken');
+          barChanger(map);
           break;
 
         case 'letters':
           pathColorizer(map, 'Warning Letters');
+          barChanger(map);
         break;
 
         case 'penalty':
           pathColorizer(map, 'Fixed Penalty Notices');
+          barChanger(map);
           break;
 
         case 'statutory':
           pathColorizer(map, 'Statutory Notices');
+          barChanger(map);
           break;
 
         case 'cautions':
           pathColorizer(map, 'Formal Cautions');
+          barChanger(map);
         break;
 
         case 'prosecutions':
           pathColorizer(map, 'Prosecutions');
+          barChanger(map);
           break;
 
         case 'change-one':
           pathColorizer(map, 'Change From Previous Year');
+          barChanger(map);
           break;
 
         case 'change-five':
           pathColorizer(map, 'Change From Five Years Ago');
+          barChanger(map);
           break;
       }
     })
 };
 
 let pathColorizer = function(map, attribute) {
-  let paths = map.selectAll('.borough');
-  let pathArray = paths._groups[0];
+  // when clicked, radio buttons cause boroughs to update their colors based on color dictionary
+
+  let paths = map.selectAll('.borough');  // borough selection
+  let bars = d3.selectAll(".bar");
+
+  let pathArray = paths._groups[0]; // gets the boroughs
+
     for (let i = 0; i < pathArray.length; i++){
-            let color = pathArray[i].myColors[attribute];
-            pathArray[i].style = 'fill: ' + color;
+            let color = pathArray[i].myColors[attribute]; // grabs color from borough's dictionary
+            pathArray[i].style = 'fill: ' + color;  // calls color value for attribute on borough
           }
 };
+
+let chartFactory = function(map, attributes){
+  // we're going to build a chart
+
+  let width = window.innerWidth * .25;
+  let height = 400;
+
+  let barScales = {};  // placeholder for scale index object
+
+  for (let att in domains) {  // get domain values for attributes
+    let yScale = d3.scaleLinear()  // create scale
+      .range([0, height])  // goes to top
+      .domain(domains[att]);  // input domain
+    barScales[att] = yScale;  // save to scale index
+  }
+
+  let attInit = 'Total Incidents';  // starting attribute
+
+  let chart = d3.select('#chart-box')  // placeholder container
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('class', 'chart')
+    .style('background-color', 'black');  // moody
+
+  let bars = chart.selectAll('.bar')  // create bars
+    .data(attributes)  // load data
+    .enter()  // ILLUSIONS, MICHAEL
+    .append('rect')  // make a bar
+    .sort(function(a, b){  // sort bars by value
+      return a[attInit] - b[attInit]
+    })
+    .attr('id', function(d){
+      return d.Area;
+    })
+    .classed('bar', true)
+    .attr('width', width / attributes.length - 1)  // separates bars w/padding
+    .attr('height', function(d){
+      return barScales[attInit](parseFloat(d[attInit]));  // get bar's scale
+    })
+    .attr('x', function (d, i){
+      return i * (width / attributes.length)  // place the bar
+    })
+    .attr('y', function(d){
+    return 5 + (height - barScales[attInit](parseFloat(d[attInit])))  // calculate the height- value '5' provides padding
+  });
+
+  // here we're going to loop through the boroughs to get their colors and assign those to the correct bar!
+  barChanger(map);
+
+};
+
+var barChanger = function(map){
+   // here we're going to loop through the boroughs to get their colors and assign those to the correct bar!
+  let boroughs = map.selectAll(".borough");
+  let boroughsArray = boroughs._groups[0];  // that's where you find those I guess
+
+  for (let i=0; i < boroughsArray.length; i++){
+    let id = boroughsArray[i].id;  // get the id of the borough
+    let color = boroughsArray[i].style.cssText;  // get its color style value
+    $("#" + id + '.bar').attr('style', color)  // use this fancy jquery selector to style the bar
+  }
+}

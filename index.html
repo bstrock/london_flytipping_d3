@@ -36,10 +36,10 @@
     <div class="col-8">
       <div id="map-container"></div>
   </div>
-    <div class="col-4">
-      <div id="info-panel" class="container">
-        <div id="radio-buttons" class="card w-50 d-inline-block">
-          <input type="radio" name="attr" value="total">
+    <div class="col-4 d-flex flex-column">
+      <div id="info-panel" class="d-flex align-items-start flex-column">
+        <div id="radio-buttons" class="card d-inline-block">
+          <input type="radio" name="attr" value="total" checked>
           <label for="total">Total Incidents</label><br>
           <input type="radio" name="attr" value="actions">
             <label for="actions">Actions Taken</label><br>
@@ -58,6 +58,7 @@
           <input type="radio" name="attr" value="change-five">
             <label for="change-five">change from 5 years ago</label><br>
         </div>
+        <div id="chart-box" class="d-flex align-items-end flex-column mt-auto"></div>
       </div>
     </div>
   </div>
