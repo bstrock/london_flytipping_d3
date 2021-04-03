@@ -297,7 +297,7 @@ let chartFactory = function (map, attributes) {
   // we're going to build a chart
 
   let chartVars = {
-   width: window.innerWidth * .25,
+        width: window.innerWidth * .25,
         height: 400,
         leftPadding: 2,
         rightPadding: 20,
@@ -350,8 +350,28 @@ let chartFactory = function (map, attributes) {
       return 5 + (barScales[attInit](parseFloat(d[attInit])))  // calculate the height- value '5' provides padding
     });
 
+  let locale = {
+  "decimal": ".",
+  "thousands": ",",
+  "grouping": [3],
+  "currency": ["", "%"],
+  "dateTime": "%a %b %e %X %Y",
+  "date": "%m/%d/%Y",
+  "time": "%H:%M:%S",
+  "periods": ["AM", "PM"],
+  "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+  "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  "shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+}
+
+  let x = d3.formatLocale(locale);
+  console.log(x);
+
+
   let yAxis = d3.axisRight()
-        .scale(barScales[attInit]);
+        .scale(barScales[attInit])
+        .tickFormat(x.format('$'));
 
 
     //place axis
