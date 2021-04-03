@@ -293,17 +293,28 @@ let pathColorizer = function(map, attribute) {
           }
 };
 
-let chartFactory = function(map, attributes){
+let chartFactory = function (map, attributes) {
   // we're going to build a chart
 
-  let width = window.innerWidth * .25;
-  let height = 400;
+  let chartVars = {
+   width: window.innerWidth * .25,
+        height: 400,
+        leftPadding: 2,
+        rightPadding: 20,
+        topBottomPadding: 5
+   };
+       chartVars.innerWidth = chartVars.width - chartVars.leftPadding - chartVars.rightPadding;
+       chartVars.innerHeight = chartVars.height - chartVars.topBottomPadding * 2;
+       chartVars.translate = "translate(" + chartVars.leftPadding + "," + chartVars.topBottomPadding + ")";
+
 
   let barScales = {};  // placeholder for scale index object
 
+
   for (let att in domains) {  // get domain values for attributes
+    console.log(domains[att])
     let yScale = d3.scaleLinear()  // create scale
-      .range([0, height])  // goes to top
+      .range([chartVars.height, 0])  // goes to top
       .domain(domains[att]);  // input domain
     barScales[att] = yScale;  // save to scale index
   }
@@ -312,37 +323,49 @@ let chartFactory = function(map, attributes){
 
   let chart = d3.select('#chart-box')  // placeholder container
     .append('svg')
-    .attr('width', width)
-    .attr('height', height)
+    .attr('width', chartVars.innerWidth)
+    .attr('height', chartVars.innerHeight)
     .attr('class', 'chart')
-    .style('background-color', 'black');  // moody
+    .style('background-color', 'grey');  // moody
 
   let bars = chart.selectAll('.bar')  // create bars
     .data(attributes)  // load data
     .enter()  // ILLUSIONS, MICHAEL
     .append('rect')  // make a bar
-    .sort(function(a, b){  // sort bars by value
+    .sort(function (a, b) {  // sort bars by value
       return a[attInit] - b[attInit]
     })
-    .attr('id', function(d){
+    .attr('id', function (d) {
       return d.Area;
     })
     .classed('bar', true)
-    .attr('width', width / attributes.length - 1)  // separates bars w/padding
-    .attr('height', function(d){
-      return barScales[attInit](parseFloat(d[attInit]));  // get bar's scale
+    .attr('width', chartVars.innerWidth / attributes.length - 1)  // separates bars w/padding
+    .attr('height', function (d) {
+      return chartVars.height - barScales[attInit](parseFloat(d[attInit]));  // get bar's scale
     })
-    .attr('x', function (d, i){
-      return i * (width / attributes.length)  // place the bar
+    .attr('x', function (d, i) {
+      return i * (chartVars.innerWidth / attributes.length)  // place the bar
     })
-    .attr('y', function(d){
-    return 5 + (height - barScales[attInit](parseFloat(d[attInit])))  // calculate the height- value '5' provides padding
-  });
+    .attr('y', function (d) {
+      return 5 + (barScales[attInit](parseFloat(d[attInit])))  // calculate the height- value '5' provides padding
+    });
+
+  let yAxis = d3.axisRight()
+        .scale(barScales[attInit]);
+
+
+    //place axis
+  let axis = chart.append("g")
+      .attr("class", "axis")
+      .attr("transform", chartVars.translate)
+      .call(yAxis);
+
 
   // here we're going to loop through the boroughs to get their colors and assign those to the correct bar!
   barChanger(map);
 
 };
+
 
 var barChanger = function(map){
    // here we're going to loop through the boroughs to get their colors and assign those to the correct bar!
