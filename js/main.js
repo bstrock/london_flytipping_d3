@@ -350,36 +350,24 @@ let chartFactory = function (map, attributes) {
       return 5 + (barScales[attInit](parseFloat(d[attInit])))  // calculate the height- value '5' provides padding
     });
 
-  let locale = {
-  "decimal": ".",
-  "thousands": ",",
-  "grouping": [3],
-  "currency": ["", "%"],
-  "dateTime": "%a %b %e %X %Y",
-  "date": "%m/%d/%Y",
-  "time": "%H:%M:%S",
-  "periods": ["AM", "PM"],
-  "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-  "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-  "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-  "shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-}
+  // d3 doesn't let you just add a % sign after your scale value.  Oh no, that would be easy.
+  // using the format % or p will always multiply by 100.  That's lame.
+  // so instead, we literally have to tell d3 to show our y axis values as though the % sign is the currency symbol
+  // in a magical place called statisticsland, or something.  Anyway, gross.
+
+  let locale = {"currency": ["", "%"]};
 
   let x = d3.formatLocale(locale);
-  console.log(x);
-
 
   let yAxis = d3.axisRight()
         .scale(barScales[attInit])
         .tickFormat(x.format('$'));
-
 
     //place axis
   let axis = chart.append("g")
       .attr("class", "axis")
       .attr("transform", chartVars.translate)
       .call(yAxis);
-
 
   // here we're going to loop through the boroughs to get their colors and assign those to the correct bar!
   barChanger(map);
