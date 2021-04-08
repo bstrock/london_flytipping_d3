@@ -7,8 +7,6 @@ const dataPromises = Promise.all(promises);
 
 var domains = {}; // this will hold our domains
 
-
-
 // call promises, construct datasets object, pass to map generation function
 dataPromises.then(function(data) {
   console.log(data);
@@ -130,8 +128,8 @@ var colorScaler = function(map, attributes){
                                 .domain(breaks);
 
     scales[att].yScale = d3.scaleLinear()
-                            .range([0, 400])
-                            .domain(scales[att].domain);
+                            .range([0, 390])
+                            .domain(domains[att]);
 
 
   }
@@ -139,8 +137,6 @@ var colorScaler = function(map, attributes){
 };
 
 var dataJoin = function(geodata, attributes){
-
-  console.log(attributes);
 
   // pandas for javascript, anyone? ^_^
 
@@ -222,7 +218,8 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes){
       }
       let myScales = new MyScales(attVals);  // construct color library for this path from constructor
       return myScales  // send library to path
-      })
+      });
+
   pathColorizer(map, 'Total Incidents')
 };
 
@@ -331,7 +328,10 @@ var chartFactory = function (map, attributes) {
       return d.Area;
     })
     .classed('bar', true)
-    .attr('width', chartVars.innerWidth / attributes.length - 1); // separates bars w/padding
+    .style('stroke', 'black')
+    .style('stroke-width', "1px");
+
+
 
   barChanger(map, attInit);
 
@@ -363,11 +363,6 @@ var chartFactory = function (map, attributes) {
 var barChanger = function(map, attribute){
    // here we're going to loop through the boroughs to get their colors and assign those to the correct bar!
 
-  let bars = d3.selectAll('.bar')
-    .sort(function (a, b) {  // sort bars by value
-      return a[attribute] - b[attribute]
-    });
-
   let boroughs = map.selectAll(".borough");
   let boroughsArray = boroughs._groups[0];  // that's where you find those I guess
 
@@ -375,19 +370,30 @@ var barChanger = function(map, attribute){
     let id = boroughsArray[i].id;  // get the id of the borough
     let color = boroughsArray[i].myScales[attribute].colorScale;
     let y = boroughsArray[i].myScales[attribute].yScale;
-    console.log(color);
+
+    let j = i;
+    console.log(j, i)
     let selector = '#' + id + '.bar';
     d3.select(selector)
       .style('fill', color)
-    .attr('height', function () {
-      return chartVars.height - y  // get bar's scale
-    })
-   .attr('x', function (d, i) {
-      return i * (chartVars.innerWidth / chartVars.length)  // place the bar
-    })
-    .attr('y', function () {
-      return 5 + y  // calculate the height- value '5' provides padding
+      .attr('width', chartVars.innerWidth / 33) // separates bars w/padding
+      .attr('height', function () {
+
+        return 400 - y  // get bar's scale
+      })
+      .attr('x', function (d, i) {
+        console.log(j * (chartVars.innerWidth / chartVars.length))
+      return j * (400 / 33)  // place the bar
+      })
+      .attr('y', function () {
+      return y  // calculate the height- value '5' provides padding
+      });
+
+   let bars = d3.selectAll('.bar')
+    .sort(function (a, b) {  // sort bars by value
+      return a[attribute] - b[attribute]
     });
+
     //$("#" + id + '.bar').attr('style', color)  // use this fancy jquery selector to style the bar
   }
 
