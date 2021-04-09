@@ -7,6 +7,19 @@ const dataPromises = Promise.all(promises);
 
 var expressed = 'Total Incidents';
 
+
+var chartVars = {
+    width: window.innerWidth * .25,
+    height: 400,
+    leftPadding: 2,
+    rightPadding: 20,
+    topBottomPadding: 5
+  };
+
+chartVars.innerWidth = chartVars.width - chartVars.leftPadding - chartVars.rightPadding;
+chartVars.innerHeight = chartVars.height - chartVars.topBottomPadding * 2;
+chartVars.translate = "translate(" + chartVars.leftPadding + "," + chartVars.topBottomPadding + ")";
+
 // call promises, construct datasets object, pass to map generation function
 dataPromises.then(function(data) {
   console.log(data);
@@ -129,18 +142,6 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
 let chartFactory = function (map, attributes) {
   // we're going to build a chart
 
-  let chartVars = {
-    width: window.innerWidth * .25,
-    height: 400,
-    leftPadding: 2,
-    rightPadding: 20,
-    topBottomPadding: 5
-  };
-
-  chartVars.innerWidth = chartVars.width - chartVars.leftPadding - chartVars.rightPadding;
-  chartVars.innerHeight = chartVars.height - chartVars.topBottomPadding * 2;
-  chartVars.translate = "translate(" + chartVars.leftPadding + "," + chartVars.topBottomPadding + ")";
-
   let scales = scaler(attributes);
 
   let chart = d3.select('#chart-box')  // placeholder container
@@ -182,11 +183,7 @@ var addRadioButtons = function(map, attArray, attributes) {
   d3.selectAll('input')
     .on('click', function(){
       expressed = this.value;
-      let scales = scaler(attributes);
-      let boroughs = d3.selectAll('.borough')
-        .style('fill', function(d){
-          return choropleth(d.properties, scales)
-        })
+      changeExpression(attributes);
     });
 };
 
@@ -213,10 +210,10 @@ var scaler = function(attributes){
     let domain = [d3.min(values), d3.max(values)];  // here's the domain for this attribute
 
     let clusters = ss.ckmeans(values, 5);  // determine attribute value clusters
-    let breaks = [];  // break values stored here
-      for (let i = 0; i < clusters.length; i++){  // loop through clusters
-        breaks.push(d3.min(clusters[i]))  // add cluster min to breaks
-      }
+    let breaks = clusters.map(function(d){
+        return d3.min(d);
+    });
+
       breaks.shift();  // drop first value to create 4 breakpoints
 
      let colorScale = d3.scaleThreshold()
@@ -241,3 +238,31 @@ let choropleth = function(props, scales){
   let val = props[expressed];
   return scales.color(val)
 };
+
+var changeExpression = function(attributes){
+  let scales = scaler(attributes);
+      let boroughs = d3.selectAll('.borough')
+        .style('fill', function(d){
+          return choropleth(d.properties, scales)
+        })
+
+  let bars = d3.selectAll(".bar")
+        .sort(function(a, b){
+            return a[expressed] - b[expressed];
+        })
+        .attr("x", function(d, i){
+            return i * (chartVars.innerWidth / attributes.length) + chartVars.leftPadding;
+        })
+        //resize bars
+        .attr("height", function(d, i){
+            return 390 - scales.y(parseFloat(d[expressed]));
+        })
+        .attr("y", function(d, i){
+            return scales.y(parseFloat(d[expressed])) + chartVars.topBottomPadding;
+        })
+        //recolor bars
+        .style("fill", function(d){
+            return choropleth(d, scales);
+        });
+};
+
