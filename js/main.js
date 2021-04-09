@@ -213,10 +213,10 @@ var scaler = function(attributes){
     let breaks = clusters.map(function(d){
         return d3.min(d);
     });
+    console.log(breaks);
 
-      breaks.shift();  // drop first value to create 4 breakpoints
 
-     let colorScale = d3.scaleThreshold()
+     let colorScale = d3.scaleQuantile()
                           .range(colors[expressed])
                           .domain(breaks);
 
