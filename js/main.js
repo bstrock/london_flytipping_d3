@@ -242,14 +242,20 @@ let choropleth = function(props, scales){
 var changeExpression = function(attributes){
   let scales = scaler(attributes);
       let boroughs = d3.selectAll('.borough')
+        .transition()
+        .duration(1500)
+        .ease(d3.easeExpInOut)
         .style('fill', function(d){
           return choropleth(d.properties, scales)
-        })
+        });
 
   let bars = d3.selectAll(".bar")
         .sort(function(a, b){
             return a[expressed] - b[expressed];
         })
+        .transition()
+        .duration(1500)
+        .ease(d3.easeExpInOut)
         .attr("x", function(d, i){
             return i * (chartVars.innerWidth / attributes.length) + chartVars.leftPadding;
         })
