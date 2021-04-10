@@ -119,11 +119,9 @@ path {
   stop-color: #fff;
 }
 
-#mainGradient {
-  x1: 100%;
-  y1: 100%;
-  x2: 0%;
-  y2: 0%;
+rect{
+  stroke: black;
+  stroke-width: .5px;
 }
 
 .filled {

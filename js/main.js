@@ -13,11 +13,11 @@ var chartVars = {
     height: 400,
     leftPadding: 2,
     rightPadding: 20,
-    topBottomPadding: 5
+    topBottomPadding: 10
   };
 
 chartVars.innerWidth = chartVars.width - chartVars.leftPadding - chartVars.rightPadding;
-chartVars.innerHeight = chartVars.height - chartVars.topBottomPadding * 2;
+chartVars.innerHeight = chartVars.height - (chartVars.topBottomPadding * 2);
 chartVars.translate = "translate(" + chartVars.leftPadding + "," + chartVars.topBottomPadding + ")";
 
 // call promises, construct datasets object, pass to map generation function
@@ -146,8 +146,8 @@ let chartFactory = function (map, attributes) {
 
   let chart = d3.select('#chart-box')  // placeholder container
     .append('svg')
-    .attr('width', chartVars.innerWidth)
-    .attr('height', chartVars.innerHeight)
+    .attr('width', chartVars.width)
+    .attr('height', chartVars.height)
     .attr('class', 'chart')
     .style('background-color', 'grey');  // moody
 
@@ -164,16 +164,19 @@ let chartFactory = function (map, attributes) {
     .classed('bar', true)
     .attr('width', chartVars.innerWidth / attributes.length - 1)  // separates bars w/padding
     .attr('height', function (d, i) {
-      return 400 - scales.y(parseFloat(d[expressed]))
+      return scales.y(parseFloat(d[expressed]))
     })
     .attr('x', function (d, i) {
       return i * (chartVars.innerWidth / attributes.length) + chartVars.leftPadding  // place the bar
     })
     .attr('y', function (d, i) {
-      return scales.y(parseFloat(d[expressed]))
+      return chartVars.height - scales.y(parseFloat(d[expressed]))
     })
     .style('fill', function (d, i){
       return choropleth(d, scales)
+    })
+    .on('mouseover', function(d){
+      highlight(d.properties)
     })
 };
 
@@ -183,6 +186,7 @@ var addRadioButtons = function(map, attArray, attributes) {
   d3.selectAll('input')
     .on('click', function(){
       expressed = this.value;
+      console.log(expressed)
       changeExpression(attributes);
     });
 };
@@ -201,13 +205,13 @@ var scaler = function(attributes){
       'Change from Five Years Ago': colorbrewer.GnBu['5']
       };
 
-    let values = [];
-    for (let row = 0; row < attributes.length; row++) {  // loop through town centres
-      let val = attributes[row][expressed];
-      values.push(val);  // it goes in the array
-    }
+    let values = knowValues(attributes).map(Number.parseFloat)
 
-    let domain = [d3.min(values), d3.max(values)];  // here's the domain for this attribute
+
+
+
+    let domain = d3.extent(values);  // here's the domain for this attribute
+    console.log(domain);
 
     let clusters = ss.ckmeans(values, 5);  // determine attribute value clusters
     let breaks = clusters.map(function(d){
@@ -221,7 +225,7 @@ var scaler = function(attributes){
                           .domain(breaks);
 
      let yScale = d3.scaleLinear()
-                      .range([390, 0])
+                      .range([chartVars.topBottomPadding, chartVars.innerHeight])
                       .domain(domain);
 
      let scales = {
@@ -241,34 +245,62 @@ let choropleth = function(props, scales){
 
 var changeExpression = function(attributes){
   let scales = scaler(attributes);
-      let boroughs = d3.selectAll('.borough')
-        .transition()
-        .duration(1500)
-        .ease(d3.easeExpInOut)
-        .style('fill', function(d){
-          return choropleth(d.properties, scales)
-        });
+
+  let boroughs = d3.selectAll('.borough')
+    .transition()
+    .duration(1500)
+    .ease(d3.easePolyInOut)
+    .style('fill', function(d){
+      return choropleth(d.properties, scales)
+    });
+
+  let values = knowValues(attributes);
+
+  let overZero = values.filter(a => a > 0);
+
+  let width = chartVars.innerWidth / overZero.length - 1;
 
   let bars = d3.selectAll(".bar")
         .sort(function(a, b){
             return a[expressed] - b[expressed];
         })
         .transition()
+        .ease(d3.easePolyInOut)
         .duration(1500)
-        .ease(d3.easeExpInOut)
         .attr("x", function(d, i){
             return i * (chartVars.innerWidth / attributes.length) + chartVars.leftPadding;
         })
         //resize bars
         .attr("height", function(d, i){
-            return 390 - scales.y(parseFloat(d[expressed]));
+            return scales.y(parseFloat(d[expressed]))
+
         })
         .attr("y", function(d, i){
-            return scales.y(parseFloat(d[expressed])) + chartVars.topBottomPadding;
+            console.log(scales.y(parseFloat(d[expressed])))
+            return chartVars.height - scales.y(parseFloat(d[expressed]))
         })
         //recolor bars
         .style("fill", function(d){
             return choropleth(d, scales);
-        });
+        })
+
+
 };
 
+var knowValues = function(attributes) {
+  let values = [];
+    for (let row = 0; row < attributes.length; row++) {  // loop through town centres
+      let val = attributes[row][expressed];
+      values.push(val);  // it goes in the array
+    }
+
+    return values
+};
+
+var highlighter = function (props){
+    //change stroke
+    console.log(props)
+    var selected = d3.selectAll("#" + props.NAME)
+        .style("stroke", "white")
+        .style("stroke-width", "2");
+}
