@@ -9,10 +9,10 @@ var expressed = 'Total Incidents';
 
 
 var chartVars = {
-    width: window.innerWidth * .25,
+    width: window.innerWidth * .3,
     height: 400,
-    leftPadding: 2,
-    rightPadding: 25,
+    leftPadding: 1,
+    rightPadding: 40,
     topBottomPadding: 10
   };
 
@@ -176,7 +176,7 @@ let chartFactory = function (map, attributes) {
       return choropleth(d, scales)
     })
     .on('mouseover', function(d){
-      highlight(d.properties)
+      highlighter(d)
     })
 
   let locale = {"currency": ["", "%"]};
@@ -192,8 +192,8 @@ let chartFactory = function (map, attributes) {
 
     //place axis
   let axis = chart.append("g")
-      .attr("class", "axis")
-      .attr("transform", 'translate(' + chartVars.innerWidth + ', ' + chartVars.topBottomPadding * 2 +')')
+      .classed('axis', true)
+      .attr("transform", 'translate(' + (chartVars.innerWidth + 10) + ', ' + chartVars.topBottomPadding * 2 +')')
       .call(yAxis);
 
 
@@ -291,7 +291,7 @@ var changeExpression = function(attributes){
         })
         //resize bars
         .attr("height", function(d, i){
-          return scales.y(0) - scales.y(parseFloat(d[expressed]))
+          return chartVars.height - scales.y(parseFloat(d[expressed]))
         })
         .attr("y", function(d, i){
             return scales.y(parseFloat(d[expressed]))
@@ -300,8 +300,20 @@ var changeExpression = function(attributes){
         //recolor bars
         .style("fill", function(d){
             return choropleth(d, scales);
-        })
+        });
 
+    let locale = {"currency": ["", "%"]};
+    let x = d3.formatLocale(locale);
+
+    let yAxis = d3.axisRight()
+        .scale(scales.y)
+        .tickFormat(x.format('$'));
+
+    let axis = d3.selectAll('.axis')
+      .transition()
+      .duration(1500)
+      .ease(d3.easePolyInOut)
+      .call(yAxis)
 
 };
 
