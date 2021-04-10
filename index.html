@@ -33,12 +33,32 @@
   </div>
 
   <div class="row">
-    <div class="col-8">
+    <div class="col-6">
       <div id="map-container"></div>
   </div>
     <div class="col-4 d-flex flex-column">
-      <div id="info-panel" class="d-flex align-items-start flex-column">
-        <div id="radio-buttons" class="card d-inline-block">
+      <div id="info-panel" class="d-inline flex-column ml-5">
+        <div id="radio-buttons" class="card d- float-left ml-3 d-block mb-2">
+          <input type="radio" name="attr" value="Total Incidents" checked>
+          <label for="total">Total Incidents</label><br>
+          <input type="radio" name="attr" value="Total Actions Taken">
+            <label for="actions">Actions Taken</label><br>
+          <input type="radio" name="attr" value="Warning Letters">
+            <label for="letters">Warning Letters</label><br>
+          <input type="radio" name="attr" value="Fixed Penalty Notices">
+            <label for="penalty">Fixed Penalty Notices</label><br>
+          <input type="radio" name="attr" value="Statutory Notices">
+            <label for="statutory">Statutory Notices</label><br>
+          <input type="radio" name="attr" value="Formal Cautions">
+            <label for="cautions">Formal Cautions</label><br>
+          <input type="radio" name="attr" value="Prosecutions">
+            <label for="prosecutions">Prosecutions</label><br>
+          <input type="radio" name="attr" value="Change from Previous Year">
+            <label for="change-one">Change from Previous Year</label><br>
+          <input type="radio" name="attr" value="Change from Five Years Ago">
+            <label for="change-five">Change from Five Years Ago</label><br>
+        </div>
+        <div id="radio-buttons2" class="card float-right d-block mb-2">
           <input type="radio" name="attr" value="Total Incidents" checked>
           <label for="total">Total Incidents</label><br>
           <input type="radio" name="attr" value="Total Actions Taken">

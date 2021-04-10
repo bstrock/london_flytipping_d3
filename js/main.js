@@ -7,10 +7,16 @@ const dataPromises = Promise.all(promises);
 
 var expressed = 'Total Incidents';
 
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
+
 
 var chartVars = {
     width: window.innerWidth * .3,
-    height: 400,
+    height: 500,
     leftPadding: 1,
     rightPadding: 40,
     topBottomPadding: 10
@@ -43,7 +49,7 @@ dataPromises.catch(function(){
 
 var generateMap = function(datasets, attArray) {
 
-  let width = window.innerWidth * .65,
+  let width = window.innerWidth * .5,
     height = 800;
 
   const projection = d3.geoBonne() // because
@@ -65,7 +71,7 @@ var generateMap = function(datasets, attArray) {
     .attr('class', 'map') // define class
     .attr('width', width) // assign width
     .attr('height', height) // assign height
-    .style('background-color', 'black');
+    .style('background-color', 'white');
 
   map.call(zoom);
   let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.London_Borough_Excluding_MHW).features;
@@ -80,7 +86,9 @@ var generateMap = function(datasets, attArray) {
   let boroughs = d3.selectAll('.borough')
     .style('fill', function(d){
       return choropleth(d.properties, scales)
-        });
+        })
+    .style('stroke', 'grey')
+    .style('stroke-width', '.5px');
 
   addRadioButtons(map, attArray, attributes);
 
@@ -137,6 +145,14 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
       return d.properties.NAME  // tag sitename to path
     })
     .classed('borough', true)  // add class
+      .on('mouseenter', function() {
+      highlighter(this.id)
+    })
+    .style('fill-opacity', '.75')
+    .on('mouseleave', function() {
+      dehighlighter(this.id)
+    })
+
 };
 
 let chartFactory = function (map, attributes) {
@@ -149,7 +165,7 @@ let chartFactory = function (map, attributes) {
     .attr('width', chartVars.width)
     .attr('height', chartVars.height)
     .attr('class', 'chart')
-    .style('background-color', 'grey');  // moody
+    .style('background-color', 'white');  // moody
 
   let bars = chart.selectAll('.bar')  // create bars
     .data(attributes)  // load data
@@ -162,7 +178,7 @@ let chartFactory = function (map, attributes) {
       return d.Area;
     })
     .classed('bar', true)
-    .attr('width', chartVars.innerWidth / attributes.length - 1)  // separates bars w/padding
+    .attr('width', chartVars.innerWidth / attributes.length - 3)  // separates bars w/padding
     .attr('height', function (d, i) {
       return scales.y(0) - scales.y(parseFloat(d[expressed]))
     })
@@ -175,9 +191,15 @@ let chartFactory = function (map, attributes) {
     .style('fill', function (d, i){
       return choropleth(d, scales)
     })
-    .on('mouseover', function(d){
-      highlighter(d)
+    .on('mouseenter', function() {
+      highlighter(this.id)
     })
+    .on('mouseleave', function() {
+      dehighlighter(this.id)
+    })
+    .on('mousedown', function(){
+    highlightGroup(this.attributes[6])
+  })
 
   let locale = {"currency": ["", "%"]};
 
@@ -266,8 +288,9 @@ var changeExpression = function(attributes){
   let scales = scaler(attributes);
 
   let boroughs = d3.selectAll('.borough')
-    .transition()
+    .transition('color_boroughs')
     .duration(1500)
+    .delay(100)
     .ease(d3.easePolyInOut)
     .style('fill', function(d){
       return choropleth(d.properties, scales)
@@ -283,7 +306,7 @@ var changeExpression = function(attributes){
         .sort(function(a, b){
             return a[expressed] - b[expressed];
         })
-        .transition()
+        .transition('move_bars')
         .ease(d3.easePolyInOut)
         .duration(1500)
         .attr("x", function(d, i){
@@ -310,7 +333,7 @@ var changeExpression = function(attributes){
         .tickFormat(x.format('$'));
 
     let axis = d3.selectAll('.axis')
-      .transition()
+      .transition('shift_axis')
       .duration(1500)
       .ease(d3.easePolyInOut)
       .call(yAxis)
@@ -327,10 +350,54 @@ var knowValues = function(attributes) {
     return values
 };
 
-var highlighter = function (props){
+var highlighter = function (id){
     //change stroke
-    console.log(props)
-    var selected = d3.selectAll("#" + props.NAME)
-        .style("stroke", "white")
-        .style("stroke-width", "2");
+
+    let bar = d3.select('#' + id + '.bar')
+      .transition('highlight_bars')
+      .ease(d3.easePolyInOut)
+      .duration(100)
+        .style("stroke", "black")
+        .style("stroke-width", "2")
+        .style('fill-opacity', '1')
+
+    let borough = d3.select('#' + id + '.borough')
+      .transition('highlight_boroughs')
+      .ease(d3.easePolyInOut)
+      .duration(150)
+        .style("stroke", "black")
+        .style("stroke-width", "2")
+        .style('fill-opacity', '1')
+
 }
+
+var dehighlighter = function (id){
+    //change stroke
+
+    let bar = d3.selectAll('#' + id + '.bar')
+      .transition('dehighlight_bars')
+      .ease(d3.easePolyInOut)
+      .delay(200)
+      .duration(100)
+        .style("stroke", "grey")
+        .style("stroke-width", "1")
+        .style('fill-opacity', '.5');
+
+    let borough = d3.select('#' + id + '.borough')
+      .transition('dehighlight_boroughs')
+      .ease(d3.easePolyInOut)
+      .delay(50)
+      .duration(250)
+        .style("stroke", "grey")
+        .style("stroke-width", ".75")
+        .style('fill-opacity', '.75')
+};
+
+var highlightGroup = function(color){
+
+  let bars = d3.selectAll('.bar')
+  console.log(bars)
+
+
+}
+
