@@ -12,7 +12,7 @@ var chartVars = {
     width: window.innerWidth * .25,
     height: 400,
     leftPadding: 2,
-    rightPadding: 20,
+    rightPadding: 25,
     topBottomPadding: 10
   };
 
@@ -76,7 +76,7 @@ var generateMap = function(datasets, attArray) {
   addBoroughs(map, path, boroughsGeoJSON, attributes); // attach centres to svg
 
   let scales = scaler(attributes);
-  console.log(scales.color)
+
   let boroughs = d3.selectAll('.borough')
     .style('fill', function(d){
       return choropleth(d.properties, scales)
@@ -164,13 +164,13 @@ let chartFactory = function (map, attributes) {
     .classed('bar', true)
     .attr('width', chartVars.innerWidth / attributes.length - 1)  // separates bars w/padding
     .attr('height', function (d, i) {
-      return scales.y(parseFloat(d[expressed]))
+      return scales.y(0) - scales.y(parseFloat(d[expressed]))
     })
     .attr('x', function (d, i) {
       return i * (chartVars.innerWidth / attributes.length) + chartVars.leftPadding  // place the bar
     })
     .attr('y', function (d, i) {
-      return chartVars.height - scales.y(parseFloat(d[expressed]))
+      return scales.y(parseFloat(d[expressed]))
     })
     .style('fill', function (d, i){
       return choropleth(d, scales)
@@ -178,6 +178,25 @@ let chartFactory = function (map, attributes) {
     .on('mouseover', function(d){
       highlight(d.properties)
     })
+
+  let locale = {"currency": ["", "%"]};
+
+  let x = d3.formatLocale(locale);
+
+
+  let yAxis = d3.axisRight()
+
+        .scale(scales.y)
+        .tickFormat(x.format('$'));
+
+
+    //place axis
+  let axis = chart.append("g")
+      .attr("class", "axis")
+      .attr("transform", 'translate(' + chartVars.innerWidth + ', ' + chartVars.topBottomPadding * 2 +')')
+      .call(yAxis);
+
+
 };
 
 var addRadioButtons = function(map, attArray, attributes) {
@@ -210,7 +229,7 @@ var scaler = function(attributes){
 
 
 
-    let domain = d3.extent(values);  // here's the domain for this attribute
+    let domain = [d3.min(values), d3.max(values)];  // here's the domain for this attribute
     console.log(domain);
 
     let clusters = ss.ckmeans(values, 5);  // determine attribute value clusters
@@ -225,7 +244,7 @@ var scaler = function(attributes){
                           .domain(breaks);
 
      let yScale = d3.scaleLinear()
-                      .range([chartVars.topBottomPadding, chartVars.innerHeight])
+                      .range([chartVars.innerHeight, chartVars.topBottomPadding])
                       .domain(domain);
 
      let scales = {
@@ -272,12 +291,11 @@ var changeExpression = function(attributes){
         })
         //resize bars
         .attr("height", function(d, i){
-            return scales.y(parseFloat(d[expressed]))
-
+          return scales.y(0) - scales.y(parseFloat(d[expressed]))
         })
         .attr("y", function(d, i){
-            console.log(scales.y(parseFloat(d[expressed])))
-            return chartVars.height - scales.y(parseFloat(d[expressed]))
+            return scales.y(parseFloat(d[expressed]))
+
         })
         //recolor bars
         .style("fill", function(d){
