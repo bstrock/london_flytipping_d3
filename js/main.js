@@ -158,7 +158,7 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
       dehighlighter(this.id)
     })
   .on("mousemove", function(event, d){
-            console.log(d)
+            d3.select(this).raise()
             return d3.select('.toolTip')
               .style("left", d3.pointer(event)[0]-900 + "px")
               .style("top", d3.pointer(event)[1]-100 + "px")
@@ -176,7 +176,8 @@ let chartFactory = function (map, attributes) {
 
   let tooltip = d3.select("#chart-box")
                   .append("div")
-                  .classed("toolTip", true);
+                  .classed("toolTip", true)
+                  .classed('card', true)
 
   let chart = d3.select('#chart-box')  // placeholder container
     .append('svg')
@@ -221,7 +222,7 @@ let chartFactory = function (map, attributes) {
               .style("left", d3.pointer(event)[0]-chartVars.rightPadding + "px")
               .style("top", d3.pointer(event)[1]+150 + "px")
               .style("display", "inline-block")
-              .html("<b><p>" + (d.Area.replace('-', ' ')) + "</p></b> " + expressed + ": " + (d[expressed]) + '%');
+              .html("<b>" + (d.Area.replace('-', ' ')) + "</b><br> " + expressed + ": " + (d[expressed]) + '%');
         })
     		.on("mouseout", function(d){ tooltip.style("display", "none");});
 
@@ -295,7 +296,7 @@ var scaler = function(attributes){
 
      let scales = {
        'color': colorScale,
-       'y': yScale
+       'y': yScale,
      };
 
   return scales;

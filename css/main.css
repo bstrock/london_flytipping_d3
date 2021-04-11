@@ -134,8 +134,9 @@ rect{
   min-width: 80px;
   height: auto;
   background: none repeat scroll 0 0 #ffffff;
-  border: 1px solid #6F257F;
-  padding: 14px;
+  border: 1px solid grey;
+  border-radius: 20px;
+  padding: 12px;
   text-align: center;
 }
 
