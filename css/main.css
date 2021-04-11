@@ -90,6 +90,10 @@ textarea {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
+body {
+  background-image: url('../img/background.jpg');
+  background-size: cover;
+}
 
 path {
   stroke: black;
@@ -152,9 +156,14 @@ rect{
   fill: white;
 }
 
-.info-card {
-  display: inline-flex;
-  font-size: 16px;
+#sidebar{
+  width: 30%;
+}
+
+.info-panel{
+  background-color: white;
+  border: 1px black solid;
+  border-radius: 20px;
 }
 
 /* ==========================================================================

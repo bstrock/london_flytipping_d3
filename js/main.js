@@ -50,7 +50,7 @@ dataPromises.catch(function(){
 var generateMap = function(datasets, attArray) {
 
   let width = window.innerWidth * .5,
-    height = 800;
+    height = 750;
 
   const projection = d3.geoBonne() // because
     .center([-.11, 51.51]) // london, uk
@@ -158,7 +158,7 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
       dehighlighter(this.id)
     })
   .on("mousemove", function(event, d){
-            d3.select(this).raise()
+            d3.select(this).raise();
             return d3.select('.toolTip')
               .style("left", d3.pointer(event)[0]-900 + "px")
               .style("top", d3.pointer(event)[1]-100 + "px")
@@ -178,7 +178,7 @@ let chartFactory = function (map, attributes) {
                   .append("div")
                   .classed("toolTip", true)
                   .classed('card', true)
-                  .style('display', 'none')
+                  .style('display', 'none');
 
   let chart = d3.select('#chart-box')  // placeholder container
     .append('svg')
@@ -221,14 +221,14 @@ let chartFactory = function (map, attributes) {
             console.log(id);
             return d3.select('.toolTip')
               .style("left", d3.pointer(event)[0]-chartVars.rightPadding + "px")
-              .style("top", d3.pointer(event)[1]+150 + "px")
+              .style("top", d3.pointer(event)[1]+350 + "px")
               .style("display", "inline-block")
               .html("<b>" + (d.Area.replace('-', ' ')) + "</b><br> " + expressed + ": " + (d[expressed]) + '%');
         })
   .on('mouseleave', function() {
-      dehighlighter(this.id)
+      dehighlighter(this.id);
       tooltip.style("opacity", "0")
-    })
+    });
 
 
   let locale = {"currency": ["", "%"]};
@@ -276,7 +276,7 @@ var scaler = function(attributes){
       'Change from Five Years Ago': colorbrewer.GnBu['5']
       };
 
-    let values = knowValues(attributes).map(Number.parseFloat)
+    let values = knowValues(attributes).map(Number.parseFloat);
 
 
 
@@ -389,7 +389,7 @@ var highlighter = function (id){
       .duration(100)
         .style("stroke", "black")
         .style("stroke-width", "2")
-        .style('fill-opacity', '1')
+        .style('fill-opacity', '1');
 
     let borough = d3.select('#' + id + '.borough')
       .transition('highlight_boroughs')
@@ -399,7 +399,7 @@ var highlighter = function (id){
         .style("stroke-width", "2")
         .style('fill-opacity', '1')
 
-}
+};
 
 var dehighlighter = function (id){
     //change stroke
@@ -432,9 +432,7 @@ var changeInfoBox = function(){
       d3.select('.info-body')
         .html('Fly tipping, also called illegal dumping, occurs when rubbish, trash, or other refuse is\n' +
           'disposed of improperly in a public environment.  Fly tipping is typically driven by household waste ' +
-          'and bulk items, left in surreptitious locations by householders or unlicensed waste collectors.<br><br>' +
-          'This map helps you explore trends related to fly tipping in London, and how different boroughs respond to ' +
-          'this increasingly problematic issue.');
+          'and bulk items, left in surreptitious locations by householders or unlicensed waste collectors.');
 
       break;
 
@@ -445,17 +443,17 @@ var changeInfoBox = function(){
       d3.select('.info-body')
         .html('Fly tipping is an increasingly pervasive issue in London.  Last year, over 300,000 incidents of fly tipping' +
           ' were recorded across the city, creating environmental hazards within local communities and racking up costs related to' +
-          " mitigation.  Disposal costs related to such incidents cost the city's 33 Councils £18.4m in 2016/17.");
+          " mitigation.  Fly tipping disposals cost the city's 33 Councils £18.4m in 2016/17.");
       break;
 
     case 'Total Actions Taken':
       d3.select('.info-header')
-        .html('Total Actions Taken')
+        .html('Total Actions Taken');
 
       d3.select('.info-body')
         .html('In 2018/19, over 157,000 enforcement actions were taken as a result of fly tipping incidents.  \n' +
           'These sanctions range from written warnings to formal prosecution.  Fly tipping sanctions are' +
-          ' typically the result of an investigation related to an incident, such as a review of CCTV footage.')
+          ' typically the result of an investigation related to an incident, such as a review of CCTV footage.');
       break;
 
     case 'Warning Letters':
@@ -465,7 +463,7 @@ var changeInfoBox = function(){
       d3.select('.info-body')
         .html('Warning letters are the mildest form of sanction.  These letters typically inform the recipient that they\'ve been ' +
           "connected to a fly tipping investigation, and how to properly dispose of household waste. In 2019/20, more than 8,500 Warning " +
-          "Letters were issued as a result of fly tipping investigations in London.")
+          "Letters were issued as a result of fly tipping investigations in London.");
       break;
 
     case 'Fixed Penalty Notices':
@@ -475,7 +473,7 @@ var changeInfoBox = function(){
       d3.select('.info-body')
         .html('Since 2016, Councils have been empowered to issue Fixed Penalty Notices in response to fly tipping incidents,' +
           ' which have become the primary enforcement response in many boroughs.  Issuing and enforcing Fixed Penalty Notices ' +
-          ' costs the city more than the incoming revenue from the associated fines.')
+          ' costs the city more than the incoming revenue from the associated fines.');
       break;
 
     case 'Statutory Notices':
@@ -485,7 +483,7 @@ var changeInfoBox = function(){
       d3.select('.info-body')
         .html('As fly tipping has become increasingly problematic, London has innovated new enforcement methods to combat' +
           ' these issues and reduce incidents of fly tipping.  In 2019, Councils were given the authority to fine households'+
-          ' up to $400 if their waste is illegally fly tipped by an informal waste collector.')
+          ' up to $400 if their waste is illegally fly tipped by an informal waste collector.');
       break;
 
     case 'Formal Cautions':
@@ -495,7 +493,7 @@ var changeInfoBox = function(){
       d3.select('.info-body')
         .html('This shift in strategies for targeted enforcement action against fly tipping is evident in the data- ' +
           'Formal Cautions have largely fallen out of favor due to the availability of Fixed Penalty Notices, which' +
-          ' imply the admission of guilt alongside the promise of no further action ones the fine is paid.')
+          ' imply the admission of guilt alongside the promise of no further action ones the fine is paid.');
       break;
 
     case 'Prosecutions':
@@ -505,8 +503,7 @@ var changeInfoBox = function(){
       d3.select('.info-body')
         .html('Prosecutions have also declined dramatically in London, although they remain a focus of enforcement elsewhere' +
           ' in the country.  Prosecutions are costly to pursue, and as such, pursuing a strategy of prosecution for small-scale' +
-          ' fly tipping incidents is often inefficient in densely populated areas.  Fixed Penalty Notices and other low-level sanctions' +
-          ' allow for a wider response, given the allocation of funds to address fly tipping.')
+          ' fly tipping incidents is often inefficient in densely populated areas.');
       break;
   }
 
