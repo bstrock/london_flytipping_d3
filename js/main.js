@@ -213,18 +213,22 @@ let chartFactory = function (map, attributes) {
     .on('mouseenter', function() {
       highlighter(this.id)
     })
-    .on('mouseleave', function() {
-      dehighlighter(this.id)
-    })
     .on("mousemove", function(event, d){
-            console.log(d)
+
+            let id = d.Area;
+            d3.select('path#' + id + '.borough').raise();
+            console.log(id);
             return d3.select('.toolTip')
               .style("left", d3.pointer(event)[0]-chartVars.rightPadding + "px")
               .style("top", d3.pointer(event)[1]+150 + "px")
               .style("display", "inline-block")
               .html("<b>" + (d.Area.replace('-', ' ')) + "</b><br> " + expressed + ": " + (d[expressed]) + '%');
         })
-    		.on("mouseout", function(d){ tooltip.style("display", "none");});
+  .on('mouseleave', function() {
+      dehighlighter(this.id)
+      tooltip.style("opacity", "0")
+    })
+
 
   let locale = {"currency": ["", "%"]};
 
@@ -252,8 +256,8 @@ var addRadioButtons = function(map, attArray, attributes) {
   d3.selectAll('input')
     .on('click', function(){
       expressed = this.value;
-      console.log(expressed)
       changeExpression(attributes);
+      changeInfoBox();
     });
 };
 
@@ -417,3 +421,29 @@ var dehighlighter = function (id){
         .style("stroke-width", ".75")
         .style('fill-opacity', '.75')
 };
+
+let changeInfoBox = function(){
+  switch(expressed) {
+    case 'Total Incidents':
+      d3.selectAll('.info-card')
+        .classed('active', false)
+        .classed('hidden', true)
+        .style('display', 'none');
+
+      d3.select('#info-card-total')
+        .classed('active', true)
+      .style('display', 'd-block')
+
+      break;
+
+    case 'Total Actions Taken':
+      d3.selectAll('.info-card')
+        .classed('hidden', true)
+        .classed('active', false)
+      .style('display', 'none')
+
+      d3.select('#info-card-actions')
+        .classed('active', true)
+      .style('display', 'd-block')
+  }
+}
