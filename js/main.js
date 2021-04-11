@@ -137,8 +137,11 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
   // scales object created in colorize() to define an object which contains the color value of each attribute
   // for each town centre.  This will be called by .style() when the attribute selector radio button changes state.
 
-  map.selectAll('path')  // create path object placeholders
+    let tooltip = d3.select("#chart-box")
+                  .append("div")
+                  .classed("toolTip", true);
 
+  map.selectAll('path')  // create path object placeholders
     .data(boroughsGeoJSON)  // feed d3
     .enter()  // enter topology array
     .append('path')  // append path to svg
@@ -154,6 +157,15 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
     .on('mouseleave', function() {
       dehighlighter(this.id)
     })
+  .on("mousemove", function(event, d){
+            console.log(d)
+            return d3.select('.toolTip')
+              .style("left", d3.pointer(event)[0]-900 + "px")
+              .style("top", d3.pointer(event)[1]-100 + "px")
+              .style("display", "inline-block")
+              .html("<b><p>" + (d.properties.NAME.replace('-', ' ')) + "</p></b> " + expressed + ": " + (d.properties[expressed]) + '%');
+        })
+    		.on("mouseout", function(d){ tooltip.style("display", "none");});
 
 };
 
@@ -207,7 +219,7 @@ let chartFactory = function (map, attributes) {
             console.log(d)
             return d3.select('.toolTip')
               .style("left", d3.pointer(event)[0]-chartVars.rightPadding + "px")
-              .style("top", d3.pointer(event)[1]+100 + "px")
+              .style("top", d3.pointer(event)[1]+150 + "px")
               .style("display", "inline-block")
               .html("<b><p>" + (d.Area.replace('-', ' ')) + "</p></b> " + expressed + ": " + (d[expressed]) + '%');
         })
