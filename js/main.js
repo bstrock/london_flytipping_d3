@@ -94,6 +94,8 @@ var generateMap = function(datasets, attArray) {
 
   chartFactory(map, attributes);
 
+
+
 };
 var dataJoin = function(geodata, attributes){
 
@@ -160,6 +162,10 @@ let chartFactory = function (map, attributes) {
 
   let scales = scaler(attributes);
 
+  let tooltip = d3.select("#chart-box")
+                  .append("div")
+                  .classed("toolTip", true);
+
   let chart = d3.select('#chart-box')  // placeholder container
     .append('svg')
     .attr('width', chartVars.width)
@@ -197,9 +203,15 @@ let chartFactory = function (map, attributes) {
     .on('mouseleave', function() {
       dehighlighter(this.id)
     })
-    .on('mousedown', function(){
-    highlightGroup(this.attributes[6])
-  })
+    .on("mousemove", function(event, d){
+            console.log(d)
+            return d3.select('.toolTip')
+              .style("left", d3.pointer(event)[0]-chartVars.rightPadding + "px")
+              .style("top", d3.pointer(event)[1]+100 + "px")
+              .style("display", "inline-block")
+              .html("<b><p>" + (d.Area.replace('-', ' ')) + "</p></b> " + expressed + ": " + (d[expressed]) + '%');
+        })
+    		.on("mouseout", function(d){ tooltip.style("display", "none");});
 
   let locale = {"currency": ["", "%"]};
 
@@ -392,12 +404,3 @@ var dehighlighter = function (id){
         .style("stroke-width", ".75")
         .style('fill-opacity', '.75')
 };
-
-var highlightGroup = function(color){
-
-  let bars = d3.selectAll('.bar')
-  console.log(bars)
-
-
-}
-
