@@ -152,6 +152,10 @@ rect{
   fill: white;
 }
 
+.info-card {
+  display: inline-flex;
+  font-size: 16px;
+}
 
 /* ==========================================================================
    Helper classes

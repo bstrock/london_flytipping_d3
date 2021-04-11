@@ -16,7 +16,7 @@ d3.selection.prototype.moveToFront = function() {
 
 var chartVars = {
     width: window.innerWidth * .3,
-    height: 500,
+    height: 250,
     leftPadding: 1,
     rightPadding: 40,
     topBottomPadding: 10
@@ -178,6 +178,7 @@ let chartFactory = function (map, attributes) {
                   .append("div")
                   .classed("toolTip", true)
                   .classed('card', true)
+                  .style('display', 'none')
 
   let chart = d3.select('#chart-box')  // placeholder container
     .append('svg')
@@ -422,28 +423,89 @@ var dehighlighter = function (id){
         .style('fill-opacity', '.75')
 };
 
-let changeInfoBox = function(){
+var changeInfoBox = function(){
   switch(expressed) {
     case 'Total Incidents':
-      d3.selectAll('.info-card')
-        .classed('active', false)
-        .classed('hidden', true)
-        .style('display', 'none');
+      d3.select('.info-header')
+        .html('Fly Tipping In London');
 
-      d3.select('#info-card-total')
-        .classed('active', true)
-      .style('display', 'd-block')
+      d3.select('.info-body')
+        .html('Fly tipping, also called illegal dumping, occurs when rubbish, trash, or other refuse is\n' +
+          'disposed of improperly in a public environment.<br><br>This map helps you explore trends related to fly ' +
+          'tipping in London, and how different boroughs respond to this increasingly problematic issue.');
+      break;
 
+      case 'Change from Five Years Ago':
+      d3.select('.info-header')
+        .html('Change from Five Years Ago');
+
+      d3.select('.info-body')
+        .html('Fly tipping is an increasingly pervasive issue in London.  Disposal costs related to these incidents cost the city\'s\n' +
+          '33 Councils £18.4m in 2016/17.');
       break;
 
     case 'Total Actions Taken':
-      d3.selectAll('.info-card')
-        .classed('hidden', true)
-        .classed('active', false)
-      .style('display', 'none')
+      d3.select('.info-header')
+        .html('Total Actions Taken')
 
-      d3.select('#info-card-actions')
-        .classed('active', true)
-      .style('display', 'd-block')
+      d3.select('.info-body')
+        .html('In 2018/19, 157,000+ enforcement actions were taken as a result of fly tipping incidents.  \n' +
+          'These sanctions range from written warnings to formal prosecution.  Fly tipping sanctions are' +
+          'typically the result of an investigation related to an incident, such as a review of CCTV footage.')
+      break;
+
+    case 'Warning Letters':
+      d3.select('.info-header')
+        .html('Warning Letters');
+
+      d3.select('.info-body')
+        .html('Warning letters are the mildest form of sanction.  These letters typically inform the recipient that they\'ve been ' +
+          "connected to a fly tipping investigation, and how to properly dispose of household waste. In 2019/20, more than 8,500 Warning " +
+          "Letters were issued as a result of fly tipping investigations in London.")
+      break;
+
+    case 'Fixed Penalty Notices':
+       d3.select('.info-header')
+        .html('Fixed Penalty Notices');
+
+      d3.select('.info-body')
+        .html('Since 2016, Councils have been empowered to issue Fixed Penalty Notices in response to fly tipping incidents,' +
+          ' which have become the primary enforcement response in many boroughs.  Issuing and enforcing Fixed Penalty Notices ' +
+          'costs the city more than the incoming revenue from the associated fines.')
+      break;
+
+    case 'Statutory Notices':
+       d3.select('.info-header')
+        .html('Fixed Penalty Notices');
+
+      d3.select('.info-body')
+        .html('As fly tipping has become increasingly problematic, London has innovated new enforcement methods to combat' +
+          'these issues and reduce incidents of fly tipping.  In 2019, Councils were given the authority to fine households'+
+          'up to $400 if their waste is illegally fly tipped by an informal waste collector.')
+      break;
+
+    case 'Formal Cautions':
+       d3.select('.info-header')
+        .html('Formal Cautions');
+
+      d3.select('.info-body')
+        .html('This shift in strategies for targeted enforcement action against fly tipping is evident in the data- ' +
+          'Formal Cautions have largely fallen out of favor due to the availability of Fixed Penalty Notices, which' +
+          'imply the admission of guilt alongside the promise of no further action ones the fine is paid.')
+      break;
+
+    case 'Prosecutions':
+       d3.select('.info-header')
+        .html('Prosecutions');
+
+      d3.select('.info-body')
+        .html('Prosecutions have also declined dramatically in London, although they remain a focus of enforcement elsewhere' +
+          'in the country.  Prosecutions are costly to pursue, and as such, pursuing a strategy of prosecution for small-scale' +
+          'fly tipping incidents is often inefficient in densely populated areas.  Fixed Penalty Notices and other low-level sanctions' +
+          ' allow for a wider response, given the allocation of funds to address fly tipping.')
+      break;
   }
-}
+
+
+
+};

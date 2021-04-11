@@ -39,11 +39,27 @@
     <div class="col-6">
       <div id="map-container"></div>
   </div>
-    <div class="col-4 d-flex flex-column">
+    <div class="col-4 d-flex flex-column h-100">
       <div id="info-panel" class="d-inline flex-column ml-5">
-        <div id="radio-buttons" class="card d- float-left ml-3 d-block mb-2">
+
+        <div class="card float-left d-block info-card w-auto mb-2" id="info-card-total">
+          <div class="card-header p-1">
+            <p class="lead info-header mb-1" id="info-header-total">Fly Tipping In London</p>
+          </div>
+          <div class="card-body info-body pb-1" id="info-body-total">
+            Fly tipping, also called illegal dumping, occurs when rubbish, trash, or other refuse is
+          disposed of improperly in a public environment.<br><br>This map helps you explore trends related
+            to fly tipping in London, and how different boroughs respond to this increasingly problematic issue.
+          </div>
+      </div>
+        <div id="radio-buttons" class="card align-items-start float-right ml-3 d-block mb-2">
+          <div class="card-header">
+            <p class="lead mb-0">Select Data to Display</p>
+          </div>
           <input type="radio" name="attr" value="Total Incidents" checked>
-          <label for="total">Total Incidents</label><br>
+            <label for="total">Total Incidents</label><br>
+          <input type="radio" name="attr" value="Change from Five Years Ago">
+            <label for="change-five">Change from Five Years Ago</label><br>
           <input type="radio" name="attr" value="Total Actions Taken">
             <label for="actions">Actions Taken</label><br>
           <input type="radio" name="attr" value="Warning Letters">
@@ -56,42 +72,9 @@
             <label for="cautions">Formal Cautions</label><br>
           <input type="radio" name="attr" value="Prosecutions">
             <label for="prosecutions">Prosecutions</label><br>
-          <input type="radio" name="attr" value="Change from Previous Year">
-            <label for="change-one">Change from Previous Year</label><br>
-          <input type="radio" name="attr" value="Change from Five Years Ago">
-            <label for="change-five">Change from Five Years Ago</label><br>
         </div>
 
-        <div id="carousel" class="carousel slide w-50 float-right" data-ride="carousel">
-          <div class="carousel-inner">
-    <div class="carousel-item active">
-        <div class="card d-block info-card w-auto" id="info-card-total">
-          <div class="card-header">
-            <p class="lead" id="info-header-total">Fly Tipping In London</p>
-          </div>
-          <div class="card-body" id="info-body-total">
-            Fly tipping, also called illegal dumping, occurs when rubbish, trash, or other refuse is
-          disposed of improperly in a public environment.  Disposal costs related to these incidents cost London's
-          33 Councils £18.4m in 2016/17.
-          </div>
-        </div>
-    </div>
-    <div class="carousel-item hidden">
-      <div class="card d-block info-card w-auto" id="info-card-actions">
-        <div class="card-header">
-            <p class="lead" id="info-header-actions">Fly Tipping In London</p>
-        </div>
-        <div class="card-body" id="info-body-actions">
-          Across London's 33 boroughs, 157,000+ enforcement actions were taken as a result of fly tipping incidents in 2018/19.
-          These sanctions range from written warnings to formal prosecution.  Since 2016, Councils have been able to issue
-          Fixed Penalty Notices in response to fly tipping incidents, which have become the primary enforcement response.
-        </div>
-      </div>
-    </div>
-       </div>
-    </div>
-
-        <div id="chart-box" class="d-flex align-items-end flex-column mt-auto float-right"></div>
+        <div id="chart-box" class="d-flex align-items-baseline flex-column mt-auto float-right"></div>
       </div>
     </div>
   </div>
