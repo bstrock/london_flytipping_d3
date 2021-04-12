@@ -15,7 +15,7 @@ d3.selection.prototype.moveToFront = function() {
 
 
 var chartVars = {
-    width: window.innerWidth * .3,
+    width: window.innerWidth * .33,
     height: 250,
     leftPadding: 1,
     rightPadding: 40,
@@ -53,8 +53,8 @@ var generateMap = function(datasets, attArray) {
     height = 775;
 
   const projection = d3.geoBonne() // because
-    .center([-.11, 51.51]) // london, uk
-    .scale(112000) // big number
+    .center([-.09, 51.51]) // london, uk
+    .scale(98000) // big number
     .translate([width / 2, (height / 2) - height * .05]); // centers the map w/ 5% vertical offset
 
   const zoom = d3.zoom()
@@ -71,11 +71,17 @@ var generateMap = function(datasets, attArray) {
     .attr('class', 'map') // define class
     .attr('width', width) // assign width
     .attr('height', height) // assign height
-    .style('background-color', 'white');
+    .style('background-color', 'rgba(255, 255, 255, .75)');
 
   map.call(zoom);
   let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.London_Borough_Excluding_MHW).features;
   let attributes = datasets.flyTipping;
+
+    let mapTitle = map.append("text")
+        .attr("x", 300)
+        .attr("y", 30)
+        .classed("mapTitle", true)
+        .text("Fly Tipping in London Boroughs, 2018/19");
 
   dataJoin(boroughsGeoJSON, attributes); // get those attributes where they belong
 
@@ -160,7 +166,7 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
   .on("mousemove", function(event, d){
             d3.select(this).raise();
             return d3.select('.toolTip')
-              .style("left", d3.pointer(event)[0]-900 + "px")
+              .style("left", d3.pointer(event)[0]-1200 + "px")
               .style("top", d3.pointer(event)[1]-100 + "px")
               .style("display", "inline-block")
               .html("<b><p>" + (d.properties.NAME.replace('-', ' ')) + "</p></b> " + expressed + ": " + (d.properties[expressed]) + '%');
@@ -200,7 +206,7 @@ let chartFactory = function (map, attributes) {
     .classed('bar', true)
     .attr('width', chartVars.innerWidth / attributes.length - 3)  // separates bars w/padding
     .attr('height', function (d, i) {
-      return scales.y(0) - scales.y(parseFloat(d[expressed]))
+      return chartVars.height - scales.y(parseFloat(d[expressed]))
     })
     .attr('x', function (d, i) {
       return i * (chartVars.innerWidth / attributes.length) + chartVars.leftPadding  // place the bar
@@ -221,13 +227,13 @@ let chartFactory = function (map, attributes) {
             console.log(id);
             return d3.select('.toolTip')
               .style("left", d3.pointer(event)[0]-chartVars.rightPadding + "px")
-              .style("top", d3.pointer(event)[1]+350 + "px")
+              .style("top", d3.pointer(event)[1]+300 + "px")
               .style("display", "inline-block")
               .html("<b>" + (d.Area.replace('-', ' ')) + "</b><br> " + expressed + ": " + (d[expressed]) + '%');
         })
   .on('mouseleave', function() {
       dehighlighter(this.id);
-      tooltip.style("opacity", "0")
+      tooltip.style('visibility', 'hidden')
     });
 
 
@@ -247,6 +253,12 @@ let chartFactory = function (map, attributes) {
       .classed('axis', true)
       .attr("transform", 'translate(' + (chartVars.innerWidth + 10) + ', ' + chartVars.topBottomPadding * 2 +')')
       .call(yAxis);
+
+  let chartTitle = chart.append("text")
+        .attr("x", 20)
+        .attr("y", 20)
+        .classed("chartTitle", true)
+        .text("London Boroughs ranked by % of " + expressed + ", 2018/19");
 
 
 };
@@ -367,6 +379,9 @@ var changeExpression = function(attributes){
       .duration(1500)
       .ease(d3.easePolyInOut)
       .call(yAxis)
+
+    let chartTitle = d3.select('.chartTitle')
+      .text("London Boroughs ranked by % of " + expressed + ", 2018/19");
 
 };
 

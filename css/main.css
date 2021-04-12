@@ -17,9 +17,6 @@ html {
   line-height: 1.4;
 }
 
-html * {
-  font-family: 'Delta Gothic One';
-}
 
 /*
  * Remove text-shadow in selection highlight:
@@ -93,6 +90,7 @@ textarea {
 body {
   background-image: url('../img/background.jpg');
   background-size: cover;
+  font-family: "Delta Gothic One";
 }
 
 path {
@@ -114,6 +112,7 @@ path {
   border: 1px black solid;
   border-radius: 20px;
   margin-left: 2em;
+  font-size: 25px;
 }
 
 #map-container {
@@ -155,7 +154,10 @@ rect{
 }
 
 .jumbotron-fluid{
+  text-align: center;
+  padding-bottom: .2em;
   font-family: "Delta Gothic One", cursive;
+
 }
 
 .axis path{
@@ -164,15 +166,15 @@ rect{
 
 #sidebar{
   width: 35%;
-  background-color: white;
+  background-color: rgba(255, 255, 255, .6);
   border: 1px black solid;
   border-radius: 20px;
 }
 
 .info-panel{
-
   width: 30%;
 }
+
 
 /* ==========================================================================
    Helper classes
