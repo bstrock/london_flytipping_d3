@@ -183,7 +183,7 @@ let chartFactory = function (map, attributes) {
   let tooltip = d3.select("#chart-box")
                   .append("div")
                   .classed("toolTip", true)
-                  .classed('card', true)
+                  .attr('id', 'chart-tip')
                   .style('display', 'none');
 
   let chart = d3.select('#chart-box')  // placeholder container
@@ -224,7 +224,7 @@ let chartFactory = function (map, attributes) {
 
             let id = d.Area;
             d3.select('path#' + id + '.borough').raise();
-            console.log(id);
+
             return d3.select('.toolTip')
               .style("left", d3.pointer(event)[0]-chartVars.rightPadding + "px")
               .style("top", d3.pointer(event)[1]+300 + "px")
@@ -233,7 +233,7 @@ let chartFactory = function (map, attributes) {
         })
   .on('mouseleave', function() {
       dehighlighter(this.id);
-      tooltip.style('visibility', 'hidden')
+      d3.select('.toolTip').style('display', 'none')
     });
 
 
