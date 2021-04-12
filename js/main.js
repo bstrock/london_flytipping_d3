@@ -5,15 +5,17 @@ const promises = [d3.json('data/london_boroughs.json'), d3.csv('data/fly-tipping
 // pass method objects to Promise constructor
 const dataPromises = Promise.all(promises);
 
+// the variables are global- I'm ok with this
 var expressed = 'Total Incidents';
 
+// allows boroughs to be highlighted without clipping border
 d3.selection.prototype.moveToFront = function() {
   return this.each(function(){
     this.parentNode.appendChild(this);
   });
 };
 
-
+// in place of a proper margins object
 var chartVars = {
     width: window.innerWidth * .33,
     height: 250,
@@ -22,6 +24,7 @@ var chartVars = {
     topBottomPadding: 10
   };
 
+// calcualted values
 chartVars.innerWidth = chartVars.width - chartVars.leftPadding - chartVars.rightPadding;
 chartVars.innerHeight = chartVars.height - (chartVars.topBottomPadding * 2);
 chartVars.translate = "translate(" + chartVars.leftPadding + "," + chartVars.topBottomPadding + ")";
@@ -57,6 +60,7 @@ var generateMap = function(datasets, attArray) {
     .scale(98000) // big number
     .translate([width / 2, (height / 2) - height * .05]); // centers the map w/ 5% vertical offset
 
+  // may not be necessary, but it works, so here it is
   const zoom = d3.zoom()
     .scaleExtent([1, 8])
     .on('zoom', function(e){
@@ -74,20 +78,23 @@ var generateMap = function(datasets, attArray) {
     .style('background-color', 'rgba(255, 255, 255, .75)');
 
   map.call(zoom);
+
+  // get data ready
   let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.London_Borough_Excluding_MHW).features;
   let attributes = datasets.flyTipping;
 
-    let mapTitle = map.append("text")
-        .attr("x", 300)
-        .attr("y", 30)
-        .classed("mapTitle", true)
-        .text("Fly Tipping in London Boroughs, 2018/19");
+  // add a title
+  let mapTitle = map.append("text")
+      .attr("x", 300)
+      .attr("y", 30)
+      .classed("mapTitle", true)
+      .text("Fly Tipping in London Boroughs, 2018/19");
 
   dataJoin(boroughsGeoJSON, attributes); // get those attributes where they belong
 
   addBoroughs(map, path, boroughsGeoJSON, attributes); // attach centres to svg
 
-  let scales = scaler(attributes);
+  let scales = scaler(attributes);  // build scale object
 
   let boroughs = d3.selectAll('.borough')
     .style('fill', function(d){
@@ -96,16 +103,13 @@ var generateMap = function(datasets, attArray) {
     .style('stroke', 'grey')
     .style('stroke-width', '.5px');
 
-  addRadioButtons(map, attArray, attributes);
+  addRadioButtons(map, attArray, attributes);  // makes buttons change expression
 
-  chartFactory(map, attributes);
-
-
-
+  chartFactory(map, attributes);  // makes a chart
 };
-var dataJoin = function(geodata, attributes){
 
-  console.log(attributes);
+var dataJoin = function(geodata, attributes){
+  // joins data to geodata
 
   // pandas for javascript, anyone? ^_^
 
@@ -143,9 +147,10 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
   // scales object created in colorize() to define an object which contains the color value of each attribute
   // for each town centre.  This will be called by .style() when the attribute selector radio button changes state.
 
-    let tooltip = d3.select("#chart-box")
-                  .append("div")
-                  .classed("toolTip", true);
+  // the thing you point at
+  let tooltip = d3.select("#chart-box")
+                .append("div")
+                .classed("toolTip", true);
 
   map.selectAll('path')  // create path object placeholders
     .data(boroughsGeoJSON)  // feed d3
@@ -156,14 +161,14 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
       return d.properties.NAME  // tag sitename to path
     })
     .classed('borough', true)  // add class
-      .on('mouseenter', function() {
+      .on('mouseenter', function() {  // highlights
       highlighter(this.id)
     })
-    .style('fill-opacity', '.75')
-    .on('mouseleave', function() {
+    .style('fill-opacity', '.75')  // default value
+    .on('mouseleave', function() {  // dehighlights
       dehighlighter(this.id)
     })
-  .on("mousemove", function(event, d){
+  .on("mousemove", function(event, d){  // tooltip mover
             d3.select(this).raise();
             return d3.select('.toolTip')
               .style("left", d3.pointer(event)[0]-1200 + "px")
@@ -171,15 +176,16 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
               .style("display", "inline-block")
               .html("<b><p>" + (d.properties.NAME.replace('-', ' ')) + "</p></b> " + expressed + ": " + (d.properties[expressed]) + '%');
         })
-    		.on("mouseout", function(d){tooltip.style("display", "none");});
+    		.on("mouseout", function(d){tooltip.style("display", "none");});  // bye bye tooltip
 
 };
 
 let chartFactory = function (map, attributes) {
   // we're going to build a chart
 
-  let scales = scaler(attributes);
+  let scales = scaler(attributes);  // need those scales
 
+  // another tooltip
   let tooltip = d3.select("#chart-box")
                   .append("div")
                   .classed("toolTip", true)
@@ -191,7 +197,7 @@ let chartFactory = function (map, attributes) {
     .attr('width', chartVars.width)
     .attr('height', chartVars.height)
     .attr('class', 'chart')
-    .style('background-color', 'white');  // moody
+    .style('background-color', 'white');
 
   let bars = chart.selectAll('.bar')  // create bars
     .data(attributes)  // load data
@@ -215,12 +221,12 @@ let chartFactory = function (map, attributes) {
       return scales.y(parseFloat(d[expressed]))
     })
     .style('fill', function (d, i){
-      return choropleth(d, scales)
+      return choropleth(d, scales)  // gives it the proper color
     })
-    .on('mouseenter', function() {
+    .on('mouseenter', function() {  // highlights
       highlighter(this.id)
     })
-    .on("mousemove", function(event, d){
+    .on("mousemove", function(event, d){  // tooltip mover
 
             let id = d.Area;
             d3.select('path#' + id + '.borough').raise();
@@ -231,29 +237,27 @@ let chartFactory = function (map, attributes) {
               .style("display", "inline-block")
               .html("<b>" + (d.Area.replace('-', ' ')) + "</b><br> " + expressed + ": " + (d[expressed]) + '%');
         })
-  .on('mouseleave', function() {
+  .on('mouseleave', function() {  // dehighlights
       dehighlighter(this.id);
-      d3.select('.toolTip').style('display', 'none')
+      d3.select('.toolTip').style('display', 'none')  // hides tooltip
     });
 
-
-  let locale = {"currency": ["", "%"]};
+  let locale = {"currency": ["", "%"]};  // formats scale values with % sign
 
   let x = d3.formatLocale(locale);
 
-
+  // add y axis
   let yAxis = d3.axisRight()
-
         .scale(scales.y)
         .tickFormat(x.format('$'));
 
-
-    //place axis
+  //place axis
   let axis = chart.append("g")
       .classed('axis', true)
       .attr("transform", 'translate(' + (chartVars.innerWidth + 10) + ', ' + chartVars.topBottomPadding * 2 +')')
       .call(yAxis);
 
+  // title for chart
   let chartTitle = chart.append("text")
         .attr("x", 20)
         .attr("y", 20)
@@ -268,49 +272,47 @@ var addRadioButtons = function(map, attArray, attributes) {
   console.log(attArray);
   d3.selectAll('input')
     .on('click', function(){
-      expressed = this.value;
-      changeExpression(attributes);
-      changeInfoBox();
+      expressed = this.value;  // sets current expressed
+      changeExpression(attributes); // changes visual elements according to expressed attribute
+      changeInfoBox();  // cycles html for associated content
     });
 };
 
 var scaler = function(attributes){
-
+    // makes the scales we need
+    // yay colorbrewer
     const colors = {
-      'Total Incidents': colorbrewer.BuGn['5'],
-      'Total Actions Taken': colorbrewer.OrRd['5'],
+      'Total Incidents': colorbrewer.OrRd['5'],
+      'Total Actions Taken': colorbrewer.BuGn['5'],
       'Warning Letters': colorbrewer.PuBuGn['5'],
       'Fixed Penalty Notices': colorbrewer.RdPu['5'],
       'Statutory Notices': colorbrewer.Blues['5'],
       'Formal Cautions': colorbrewer.Oranges['5'],
       'Prosecutions': colorbrewer.PuRd['5'],
-      'Change from Previous Year': colorbrewer.YlOrBr['5'],
-      'Change from Five Years Ago': colorbrewer.GnBu['5']
+      'Change from Five Years Ago': colorbrewer.YlOrBr['5']
       };
 
-    let values = knowValues(attributes).map(Number.parseFloat);
-
-
-
+    let values = knowValues(attributes).map(Number.parseFloat);  // gets values for domain
 
     let domain = [d3.min(values), d3.max(values)];  // here's the domain for this attribute
     console.log(domain);
 
+    // jenks classification
     let clusters = ss.ckmeans(values, 5);  // determine attribute value clusters
     let breaks = clusters.map(function(d){
         return d3.min(d);
     });
     console.log(breaks);
 
-
+    // color scale
      let colorScale = d3.scaleQuantile()
                           .range(colors[expressed])
                           .domain(breaks);
-
+    // y scale
      let yScale = d3.scaleLinear()
                       .range([chartVars.innerHeight, chartVars.topBottomPadding])
                       .domain(domain);
-
+    // scales object
      let scales = {
        'color': colorScale,
        'y': yScale,
@@ -323,26 +325,21 @@ var scaler = function(attributes){
 
 let choropleth = function(props, scales){
   let val = props[expressed];
-  return scales.color(val)
+  return scales.color(val)  // check val, make color
 };
 
 var changeExpression = function(attributes){
-  let scales = scaler(attributes);
+  let scales = scaler(attributes);  // get scales
 
+  // change boroughs
   let boroughs = d3.selectAll('.borough')
-    .transition('color_boroughs')
+    .transition('color_boroughs')  // prevents collisions
     .duration(1500)
     .delay(100)
-    .ease(d3.easePolyInOut)
+    .ease(d3.easePolyInOut)  // looks cool
     .style('fill', function(d){
-      return choropleth(d.properties, scales)
+      return choropleth(d.properties, scales)  // changes color
     });
-
-  let values = knowValues(attributes);
-
-  let overZero = values.filter(a => a > 0);
-
-  let width = chartVars.innerWidth / overZero.length - 1;
 
   let bars = d3.selectAll(".bar")
         .sort(function(a, b){
@@ -367,19 +364,23 @@ var changeExpression = function(attributes){
             return choropleth(d, scales);
         });
 
-    let locale = {"currency": ["", "%"]};
+  // axis format
+  let locale = {"currency": ["", "%"]};
     let x = d3.formatLocale(locale);
 
+    // make axis
     let yAxis = d3.axisRight()
         .scale(scales.y)
         .tickFormat(x.format('$'));
 
+    // transition it in
     let axis = d3.selectAll('.axis')
       .transition('shift_axis')
       .duration(1500)
       .ease(d3.easePolyInOut)
       .call(yAxis)
 
+  // change title
     let chartTitle = d3.select('.chartTitle')
       .text("London Boroughs ranked by % of " + expressed + ", 2018/19");
 
@@ -439,6 +440,8 @@ var dehighlighter = function (id){
 };
 
 var changeInfoBox = function(){
+
+  // checks expressed value and changes the text accordingly
   switch(expressed) {
     case 'Total Incidents':
       d3.select('.info-header')
@@ -521,7 +524,5 @@ var changeInfoBox = function(){
           ' fly tipping incidents is often inefficient in densely populated areas.');
       break;
   }
-
-
 
 };
