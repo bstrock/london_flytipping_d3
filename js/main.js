@@ -5,9 +5,26 @@ const promises = [d3.json('data/london_boroughs.json'), d3.csv('data/fly-tipping
 // pass method objects to Promise constructor
 const dataPromises = Promise.all(promises);
 
-var domains = {}; // this will hold our domains
+var expressed = 'Total Incidents';
+
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
 
 
+var chartVars = {
+    width: window.innerWidth * .33,
+    height: 250,
+    leftPadding: 1,
+    rightPadding: 40,
+    topBottomPadding: 10
+  };
+
+chartVars.innerWidth = chartVars.width - chartVars.leftPadding - chartVars.rightPadding;
+chartVars.innerHeight = chartVars.height - (chartVars.topBottomPadding * 2);
+chartVars.translate = "translate(" + chartVars.leftPadding + "," + chartVars.topBottomPadding + ")";
 
 // call promises, construct datasets object, pass to map generation function
 dataPromises.then(function(data) {
@@ -17,10 +34,11 @@ dataPromises.then(function(data) {
     flyTipping: data[1]
   };
 
-  attArray = Object.keys(datasets.flyTipping[0]); // list of attributes
-  attArray.slice(2);
+  const attArray = Object.keys(datasets.flyTipping[0]); // list of attributes
+  attArray.shift();
+  attArray.shift();
 
-  generateMap(datasets);
+  generateMap(datasets, attArray);
 
 });
 
@@ -29,14 +47,14 @@ dataPromises.catch(function(){
   console.log("Promises not kept.")
 });
 
-var generateMap = function(datasets) {
+var generateMap = function(datasets, attArray) {
 
-  let width = window.innerWidth * .65,
-    height = 800;
+  let width = window.innerWidth * .6,
+    height = 775;
 
   const projection = d3.geoBonne() // because
-    .center([-.11, 51.51]) // london, uk
-    .scale(112000) // big number
+    .center([-.09, 51.51]) // london, uk
+    .scale(98000) // big number
     .translate([width / 2, (height / 2) - height * .05]); // centers the map w/ 5% vertical offset
 
   const zoom = d3.zoom()
@@ -53,86 +71,38 @@ var generateMap = function(datasets) {
     .attr('class', 'map') // define class
     .attr('width', width) // assign width
     .attr('height', height) // assign height
-    .style('background-color', 'black');
+    .style('background-color', 'rgba(255, 255, 255, .75)');
 
   map.call(zoom);
   let boroughsGeoJSON = topojson.feature(datasets.boroughs, datasets.boroughs.objects.London_Borough_Excluding_MHW).features;
   let attributes = datasets.flyTipping;
 
+    let mapTitle = map.append("text")
+        .attr("x", 300)
+        .attr("y", 30)
+        .classed("mapTitle", true)
+        .text("Fly Tipping in London Boroughs, 2018/19");
+
   dataJoin(boroughsGeoJSON, attributes); // get those attributes where they belong
 
   addBoroughs(map, path, boroughsGeoJSON, attributes); // attach centres to svg
 
-  addRadioButtons(map);
+  let scales = scaler(attributes);
+
+  let boroughs = d3.selectAll('.borough')
+    .style('fill', function(d){
+      return choropleth(d.properties, scales)
+        })
+    .style('stroke', 'grey')
+    .style('stroke-width', '.5px');
+
+  addRadioButtons(map, attArray, attributes);
 
   chartFactory(map, attributes);
 
+
+
 };
-
-var colorScaler = function(map, attributes){
-
-  const colors = [colorbrewer.BuGn['5'],
-                colorbrewer.OrRd['5'],
-                colorbrewer.PuBuGn['5'],
-                colorbrewer.RdPu['5'],
-                colorbrewer.Blues['5'],
-                colorbrewer.Oranges['5'],
-                colorbrewer.PuRd['5'],
-                colorbrewer.YlOrBr['5'],
-                colorbrewer.GnBu['5']
-                ];
-
-  let colorScales = {};
-
-  for (let i = 0; i < attArray.length; i++){  // loop through attributes
-
-    let att = attArray[i];  // makes it easier to read
-
-    colorScales[att] = {
-      values: [],
-      domain: [],
-      scale: null
-    };  // placeholder for attribute
-
-    for (let row = 0; row < attributes.length; row++){  // loop through town centres
-      let val = attributes[row][att];  // this is either a float or a string
-      if (val >= 0){  // if its a float
-        colorScales[att].values.push(val);  // it goes in the array
-      } else {  // if not
-        delete colorScales[att];  // bye bye
-        break  // strings don't need this next bit
-      }
-
-      let domain = [d3.min(colorScales[att].values), d3.max(colorScales[att].values)];  // here's the domain for this attribute
-      colorScales[att].domain = domain;  // assign it to the colorscale
-      domains[att] = domain; // assign it to the global to compute graphs
-
-    }
-  }
-
-  let colorKeys = Object.keys(colorScales);  // we only want numerical values from here on out
-
-  for (let i = 0; i < colorKeys.length; i++) {  // loop through attributes
-    let att = colorKeys[i];  // capture attribute
-    let clusters = ss.ckmeans(colorScales[att].values, 5);  // determine attribute value clusters
-    let breaks = [];  // break values stored here
-    for (let j = 0; j < clusters.length; j++){  // loop through clusters
-      breaks.push(d3.min(clusters[j]))  // add cluster min to breaks
-    }
-    breaks.shift();  // drop first value to create 4 breakpoints
-
-    // at last.
-    // this block creates a color scale with a unique color for each numerical attribute
-    // colorScales[att].scale(x) will always return a hex color value!
-    colorScales[att].scale = d3.scaleThreshold()
-                                .range(colors[i])
-                                .domain(breaks);
-
-
-  }
-  return colorScales;
-};
-
 var dataJoin = function(geodata, attributes){
 
   console.log(attributes);
@@ -165,8 +135,7 @@ var dataJoin = function(geodata, attributes){
   }
 };
 
-
-var addBoroughs = function(map, path, boroughsGeoJSON, attributes){
+var addBoroughs = function(map, path, boroughsGeoJSON, attributes) {
 
   // this is where the centre paths are created and added.  when they are added, they are also given a colorspace.
   // in converting attribute value to color value via color scale, each areal unit has a possible colorspace of (in
@@ -174,215 +143,385 @@ var addBoroughs = function(map, path, boroughsGeoJSON, attributes){
   // scales object created in colorize() to define an object which contains the color value of each attribute
   // for each town centre.  This will be called by .style() when the attribute selector radio button changes state.
 
-  let colorScales = colorScaler(map, attributes);
-
-  let colorKeys = Object.keys(colorScales);  // we only want numerical values from here on out
-
-  // constructor function
-  function MyColors(attVals){
-    for (let i = 0; i < colorKeys.length; i++){
-      let att = colorKeys[i];
-      let val = attVals[att];
-      let scale = (colorScales[att].scale);
-
-      this[att] = scale(val);
-      }
-    }
+    let tooltip = d3.select("#chart-box")
+                  .append("div")
+                  .classed("toolTip", true);
 
   map.selectAll('path')  // create path object placeholders
-
     .data(boroughsGeoJSON)  // feed d3
     .enter()  // enter topology array
     .append('path')  // append path to svg
     .attr('d', path) // assign path data to svg path
-    .attr('id', function(d){
+    .attr('id', function (d) {
       return d.properties.NAME  // tag sitename to path
-  })
+    })
     .classed('borough', true)  // add class
-    .property('myColors', function(){  // attach color library to path
-      let attVals = {};  // placeholder object
-      let id = this.id;  // store id
-      for (let i = 0; i < colorKeys.length; i++) {  // iterate through numerical attributes
-        let att = colorKeys[i];  // store attribute name
-        for (let row = 0; row < attributes.length; row++){  // loop through town centres
-          if (attributes[row].Area === id){  // match id to table row
-            attVals[att] = attributes[row][att]; // append cell values to attribute values array
-            if (att === "Change From Five Years Ago"){ // why is this here?
-            }
-          }
-        }
-      }
-      let myColors = new MyColors(attVals);  // construct color library for this path from constructor
-
-      return (myColors)  // send library to path
-      })
-    .style('fill', function(){
-      // initial color
-      return this.myColors[colorKeys[0]]
-
+      .on('mouseenter', function() {
+      highlighter(this.id)
     })
-
-
-};
-
-var addRadioButtons = function(map) {
-  // a click switches the radio button, then runs colorizer function on all boroughs for that attribute
-
-  d3.selectAll('input')
-    .on('click', function(){
-      switch (this.value){
-        case 'total':
-          pathColorizer(map, 'Total Incidents');  // paths first, then bars
-          barChanger(map);
-          break;
-
-        case 'actions':
-          pathColorizer(map, 'Total Action Taken');
-          barChanger(map);
-          break;
-
-        case 'letters':
-          pathColorizer(map, 'Warning Letters');
-          barChanger(map);
-        break;
-
-        case 'penalty':
-          pathColorizer(map, 'Fixed Penalty Notices');
-          barChanger(map);
-          break;
-
-        case 'statutory':
-          pathColorizer(map, 'Statutory Notices');
-          barChanger(map);
-          break;
-
-        case 'cautions':
-          pathColorizer(map, 'Formal Cautions');
-          barChanger(map);
-        break;
-
-        case 'prosecutions':
-          pathColorizer(map, 'Prosecutions');
-          barChanger(map);
-          break;
-
-        case 'change-one':
-          pathColorizer(map, 'Change From Previous Year');
-          barChanger(map);
-          break;
-
-        case 'change-five':
-          pathColorizer(map, 'Change From Five Years Ago');
-          barChanger(map);
-          break;
-      }
+    .style('fill-opacity', '.75')
+    .on('mouseleave', function() {
+      dehighlighter(this.id)
     })
-};
+  .on("mousemove", function(event, d){
+            d3.select(this).raise();
+            return d3.select('.toolTip')
+              .style("left", d3.pointer(event)[0]-1200 + "px")
+              .style("top", d3.pointer(event)[1]-100 + "px")
+              .style("display", "inline-block")
+              .html("<b><p>" + (d.properties.NAME.replace('-', ' ')) + "</p></b> " + expressed + ": " + (d.properties[expressed]) + '%');
+        })
+    		.on("mouseout", function(d){tooltip.style("display", "none");});
 
-let pathColorizer = function(map, attribute) {
-  // when clicked, radio buttons cause boroughs to update their colors based on color dictionary
-
-  let paths = map.selectAll('.borough');  // borough selection
-  let bars = d3.selectAll(".bar");
-
-  let pathArray = paths._groups[0]; // gets the boroughs
-
-    for (let i = 0; i < pathArray.length; i++){
-            let color = pathArray[i].myColors[attribute]; // grabs color from borough's dictionary
-            pathArray[i].style = 'fill: ' + color;  // calls color value for attribute on borough
-          }
 };
 
 let chartFactory = function (map, attributes) {
   // we're going to build a chart
 
-  let chartVars = {
-        width: window.innerWidth * .25,
-        height: 400,
-        leftPadding: 2,
-        rightPadding: 20,
-        topBottomPadding: 5
-   };
-       chartVars.innerWidth = chartVars.width - chartVars.leftPadding - chartVars.rightPadding;
-       chartVars.innerHeight = chartVars.height - chartVars.topBottomPadding * 2;
-       chartVars.translate = "translate(" + chartVars.leftPadding + "," + chartVars.topBottomPadding + ")";
+  let scales = scaler(attributes);
 
-
-  let barScales = {};  // placeholder for scale index object
-
-
-  for (let att in domains) {  // get domain values for attributes
-    console.log(domains[att])
-    let yScale = d3.scaleLinear()  // create scale
-      .range([chartVars.height, 0])  // goes to top
-      .domain(domains[att]);  // input domain
-    barScales[att] = yScale;  // save to scale index
-  }
-
-  let attInit = 'Total Incidents';  // starting attribute
+  let tooltip = d3.select("#chart-box")
+                  .append("div")
+                  .classed("toolTip", true)
+                  .classed('card', true)
+                  .style('display', 'none');
 
   let chart = d3.select('#chart-box')  // placeholder container
     .append('svg')
-    .attr('width', chartVars.innerWidth)
-    .attr('height', chartVars.innerHeight)
+    .attr('width', chartVars.width)
+    .attr('height', chartVars.height)
     .attr('class', 'chart')
-    .style('background-color', 'grey');  // moody
+    .style('background-color', 'white');  // moody
 
   let bars = chart.selectAll('.bar')  // create bars
     .data(attributes)  // load data
     .enter()  // ILLUSIONS, MICHAEL
     .append('rect')  // make a bar
     .sort(function (a, b) {  // sort bars by value
-      return a[attInit] - b[attInit]
+      return a[expressed] - b[expressed]
     })
     .attr('id', function (d) {
       return d.Area;
     })
     .classed('bar', true)
-    .attr('width', chartVars.innerWidth / attributes.length - 1)  // separates bars w/padding
-    .attr('height', function (d) {
-      return chartVars.height - barScales[attInit](parseFloat(d[attInit]));  // get bar's scale
+    .attr('width', chartVars.innerWidth / attributes.length - 3)  // separates bars w/padding
+    .attr('height', function (d, i) {
+      return chartVars.height - scales.y(parseFloat(d[expressed]))
     })
     .attr('x', function (d, i) {
-      return i * (chartVars.innerWidth / attributes.length)  // place the bar
+      return i * (chartVars.innerWidth / attributes.length) + chartVars.leftPadding  // place the bar
     })
-    .attr('y', function (d) {
-      return 5 + (barScales[attInit](parseFloat(d[attInit])))  // calculate the height- value '5' provides padding
+    .attr('y', function (d, i) {
+      return scales.y(parseFloat(d[expressed]))
+    })
+    .style('fill', function (d, i){
+      return choropleth(d, scales)
+    })
+    .on('mouseenter', function() {
+      highlighter(this.id)
+    })
+    .on("mousemove", function(event, d){
+
+            let id = d.Area;
+            d3.select('path#' + id + '.borough').raise();
+            console.log(id);
+            return d3.select('.toolTip')
+              .style("left", d3.pointer(event)[0]-chartVars.rightPadding + "px")
+              .style("top", d3.pointer(event)[1]+300 + "px")
+              .style("display", "inline-block")
+              .html("<b>" + (d.Area.replace('-', ' ')) + "</b><br> " + expressed + ": " + (d[expressed]) + '%');
+        })
+  .on('mouseleave', function() {
+      dehighlighter(this.id);
+      tooltip.style('visibility', 'hidden')
     });
 
-  // d3 doesn't let you just add a % sign after your scale value.  Oh no, that would be easy.
-  // using the format % or p will always multiply by 100.  That's lame.
-  // so instead, we literally have to tell d3 to show our y axis values as though the % sign is the currency symbol
-  // in a magical place called statisticsland, or something.  Anyway, gross.
 
   let locale = {"currency": ["", "%"]};
 
   let x = d3.formatLocale(locale);
 
+
   let yAxis = d3.axisRight()
-        .scale(barScales[attInit])
+
+        .scale(scales.y)
         .tickFormat(x.format('$'));
+
 
     //place axis
   let axis = chart.append("g")
-      .attr("class", "axis")
-      .attr("transform", chartVars.translate)
+      .classed('axis', true)
+      .attr("transform", 'translate(' + (chartVars.innerWidth + 10) + ', ' + chartVars.topBottomPadding * 2 +')')
       .call(yAxis);
 
-  // here we're going to loop through the boroughs to get their colors and assign those to the correct bar!
-  barChanger(map);
+  let chartTitle = chart.append("text")
+        .attr("x", 20)
+        .attr("y", 20)
+        .classed("chartTitle", true)
+        .text("London Boroughs ranked by % of " + expressed + ", 2018/19");
+
 
 };
 
+var addRadioButtons = function(map, attArray, attributes) {
+  // a click switches the radio button, then runs colorizer function on all boroughs for that attribute
+  console.log(attArray);
+  d3.selectAll('input')
+    .on('click', function(){
+      expressed = this.value;
+      changeExpression(attributes);
+      changeInfoBox();
+    });
+};
 
-var barChanger = function(map){
-   // here we're going to loop through the boroughs to get their colors and assign those to the correct bar!
-  let boroughs = map.selectAll(".borough");
-  let boroughsArray = boroughs._groups[0];  // that's where you find those I guess
+var scaler = function(attributes){
 
-  for (let i=0; i < boroughsArray.length; i++){
-    let id = boroughsArray[i].id;  // get the id of the borough
-    let color = boroughsArray[i].style.cssText;  // get its color style value
-    $("#" + id + '.bar').attr('style', color)  // use this fancy jquery selector to style the bar
+    const colors = {
+      'Total Incidents': colorbrewer.BuGn['5'],
+      'Total Actions Taken': colorbrewer.OrRd['5'],
+      'Warning Letters': colorbrewer.PuBuGn['5'],
+      'Fixed Penalty Notices': colorbrewer.RdPu['5'],
+      'Statutory Notices': colorbrewer.Blues['5'],
+      'Formal Cautions': colorbrewer.Oranges['5'],
+      'Prosecutions': colorbrewer.PuRd['5'],
+      'Change from Previous Year': colorbrewer.YlOrBr['5'],
+      'Change from Five Years Ago': colorbrewer.GnBu['5']
+      };
+
+    let values = knowValues(attributes).map(Number.parseFloat);
+
+
+
+
+    let domain = [d3.min(values), d3.max(values)];  // here's the domain for this attribute
+    console.log(domain);
+
+    let clusters = ss.ckmeans(values, 5);  // determine attribute value clusters
+    let breaks = clusters.map(function(d){
+        return d3.min(d);
+    });
+    console.log(breaks);
+
+
+     let colorScale = d3.scaleQuantile()
+                          .range(colors[expressed])
+                          .domain(breaks);
+
+     let yScale = d3.scaleLinear()
+                      .range([chartVars.innerHeight, chartVars.topBottomPadding])
+                      .domain(domain);
+
+     let scales = {
+       'color': colorScale,
+       'y': yScale,
+     };
+
+  return scales;
+
+
+};
+
+let choropleth = function(props, scales){
+  let val = props[expressed];
+  return scales.color(val)
+};
+
+var changeExpression = function(attributes){
+  let scales = scaler(attributes);
+
+  let boroughs = d3.selectAll('.borough')
+    .transition('color_boroughs')
+    .duration(1500)
+    .delay(100)
+    .ease(d3.easePolyInOut)
+    .style('fill', function(d){
+      return choropleth(d.properties, scales)
+    });
+
+  let values = knowValues(attributes);
+
+  let overZero = values.filter(a => a > 0);
+
+  let width = chartVars.innerWidth / overZero.length - 1;
+
+  let bars = d3.selectAll(".bar")
+        .sort(function(a, b){
+            return a[expressed] - b[expressed];
+        })
+        .transition('move_bars')
+        .ease(d3.easePolyInOut)
+        .duration(1500)
+        .attr("x", function(d, i){
+            return i * (chartVars.innerWidth / attributes.length) + chartVars.leftPadding;
+        })
+        //resize bars
+        .attr("height", function(d, i){
+          return chartVars.height - scales.y(parseFloat(d[expressed]))
+        })
+        .attr("y", function(d, i){
+            return scales.y(parseFloat(d[expressed]))
+
+        })
+        //recolor bars
+        .style("fill", function(d){
+            return choropleth(d, scales);
+        });
+
+    let locale = {"currency": ["", "%"]};
+    let x = d3.formatLocale(locale);
+
+    let yAxis = d3.axisRight()
+        .scale(scales.y)
+        .tickFormat(x.format('$'));
+
+    let axis = d3.selectAll('.axis')
+      .transition('shift_axis')
+      .duration(1500)
+      .ease(d3.easePolyInOut)
+      .call(yAxis)
+
+    let chartTitle = d3.select('.chartTitle')
+      .text("London Boroughs ranked by % of " + expressed + ", 2018/19");
+
+};
+
+var knowValues = function(attributes) {
+  let values = [];
+    for (let row = 0; row < attributes.length; row++) {  // loop through town centres
+      let val = attributes[row][expressed];
+      values.push(val);  // it goes in the array
+    }
+
+    return values
+};
+
+var highlighter = function (id){
+    //change stroke
+
+    let bar = d3.select('#' + id + '.bar')
+      .transition('highlight_bars')
+      .ease(d3.easePolyInOut)
+      .duration(100)
+        .style("stroke", "black")
+        .style("stroke-width", "2")
+        .style('fill-opacity', '1');
+
+    let borough = d3.select('#' + id + '.borough')
+      .transition('highlight_boroughs')
+      .ease(d3.easePolyInOut)
+      .duration(150)
+        .style("stroke", "black")
+        .style("stroke-width", "2")
+        .style('fill-opacity', '1')
+
+};
+
+var dehighlighter = function (id){
+    //change stroke
+
+    let bar = d3.selectAll('#' + id + '.bar')
+      .transition('dehighlight_bars')
+      .ease(d3.easePolyInOut)
+      .delay(200)
+      .duration(100)
+        .style("stroke", "grey")
+        .style("stroke-width", "1")
+        .style('fill-opacity', '.5');
+
+    let borough = d3.select('#' + id + '.borough')
+      .transition('dehighlight_boroughs')
+      .ease(d3.easePolyInOut)
+      .delay(50)
+      .duration(250)
+        .style("stroke", "grey")
+        .style("stroke-width", ".75")
+        .style('fill-opacity', '.75')
+};
+
+var changeInfoBox = function(){
+  switch(expressed) {
+    case 'Total Incidents':
+      d3.select('.info-header')
+        .html('Fly Tipping In London');
+
+      d3.select('.info-body')
+        .html('Fly tipping, also called illegal dumping, occurs when rubbish, trash, or other refuse is\n' +
+          'disposed of improperly in a public environment.  Fly tipping is typically driven by household waste ' +
+          'and bulk items, left in surreptitious locations by householders or unlicensed waste collectors.');
+
+      break;
+
+      case 'Change from Five Years Ago':
+      d3.select('.info-header')
+        .html('Change from Five Years Ago');
+
+      d3.select('.info-body')
+        .html('Fly tipping is an increasingly pervasive issue in London.  Last year, over 300,000 incidents of fly tipping' +
+          ' were recorded across the city, creating environmental hazards within local communities and racking up costs related to' +
+          " mitigation.  Fly tipping disposals cost the city's 33 Councils £18.4m in 2016/17.");
+      break;
+
+    case 'Total Actions Taken':
+      d3.select('.info-header')
+        .html('Total Actions Taken');
+
+      d3.select('.info-body')
+        .html('In 2018/19, over 157,000 enforcement actions were taken as a result of fly tipping incidents.  \n' +
+          'These sanctions range from written warnings to formal prosecution.  Fly tipping sanctions are' +
+          ' typically the result of an investigation related to an incident, such as a review of CCTV footage.');
+      break;
+
+    case 'Warning Letters':
+      d3.select('.info-header')
+        .html('Warning Letters');
+
+      d3.select('.info-body')
+        .html('Warning letters are the mildest form of sanction.  These letters typically inform the recipient that they\'ve been ' +
+          "connected to a fly tipping investigation, and how to properly dispose of household waste. In 2019/20, more than 8,500 Warning " +
+          "Letters were issued as a result of fly tipping investigations in London.");
+      break;
+
+    case 'Fixed Penalty Notices':
+       d3.select('.info-header')
+        .html('Fixed Penalty Notices');
+
+      d3.select('.info-body')
+        .html('Since 2016, Councils have been empowered to issue Fixed Penalty Notices in response to fly tipping incidents,' +
+          ' which have become the primary enforcement response in many boroughs.  Issuing and enforcing Fixed Penalty Notices ' +
+          ' costs the city more than the incoming revenue from the associated fines.');
+      break;
+
+    case 'Statutory Notices':
+       d3.select('.info-header')
+        .html('Fixed Penalty Notices');
+
+      d3.select('.info-body')
+        .html('As fly tipping has become increasingly problematic, London has innovated new enforcement methods to combat' +
+          ' these issues and reduce incidents of fly tipping.  In 2019, Councils were given the authority to fine households'+
+          ' up to $400 if their waste is illegally fly tipped by an informal waste collector.');
+      break;
+
+    case 'Formal Cautions':
+       d3.select('.info-header')
+        .html('Formal Cautions');
+
+      d3.select('.info-body')
+        .html('This shift in strategies for targeted enforcement action against fly tipping is evident in the data- ' +
+          'Formal Cautions have largely fallen out of favor due to the availability of Fixed Penalty Notices, which' +
+          ' imply the admission of guilt alongside the promise of no further action ones the fine is paid.');
+      break;
+
+    case 'Prosecutions':
+       d3.select('.info-header')
+        .html('Prosecutions');
+
+      d3.select('.info-body')
+        .html('Prosecutions have also declined dramatically in London, although they remain a focus of enforcement elsewhere' +
+          ' in the country.  Prosecutions are costly to pursue, and as such, pursuing a strategy of prosecution for small-scale' +
+          ' fly tipping incidents is often inefficient in densely populated areas.');
+      break;
   }
-}
+
+
+
+};

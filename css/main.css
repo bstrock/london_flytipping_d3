@@ -17,6 +17,7 @@ html {
   line-height: 1.4;
 }
 
+
 /*
  * Remove text-shadow in selection highlight:
  * https://twitter.com/miketaylr/status/12228805301
@@ -86,6 +87,11 @@ textarea {
 /* ==========================================================================
    Author's custom styles
    ========================================================================== */
+body {
+  background-image: url('../img/background.jpg');
+  background-size: cover;
+  font-family: "Delta Gothic One";
+}
 
 path {
   stroke: black;
@@ -104,7 +110,14 @@ path {
 
 .map {
   border: 1px black solid;
+  border-radius: 20px;
   margin-left: 2em;
+  font-size: 25px;
+}
+
+#map-container {
+  width: 65%;
+  padding: 3px;
 }
 
 .chart {
@@ -119,16 +132,49 @@ path {
   stop-color: #fff;
 }
 
-#mainGradient {
-  x1: 100%;
-  y1: 100%;
-  x2: 0%;
-  y2: 0%;
+rect{
+  stroke: black;
+  stroke-width: .5px;
 }
 
 .filled {
   fill: url(#mainGradient);
 }
+
+.toolTip {
+  position: absolute;
+  display: none;
+  min-width: 80px;
+  height: auto;
+  background: none repeat scroll 0 0 #ffffff;
+  border: 1px solid grey;
+  border-radius: 20px;
+  padding: 12px;
+  text-align: center;
+}
+
+.jumbotron-fluid{
+  text-align: center;
+  padding-bottom: .2em;
+  font-family: "Delta Gothic One", cursive;
+
+}
+
+.axis path{
+  fill: white;
+}
+
+#sidebar{
+  width: 35%;
+  background-color: rgba(255, 255, 255, .6);
+  border: 1px black solid;
+  border-radius: 20px;
+}
+
+.info-panel{
+  width: 30%;
+}
+
 
 /* ==========================================================================
    Helper classes
