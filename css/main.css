@@ -157,6 +157,10 @@ rect{
   text-align: center;
   padding-bottom: .2em;
   font-family: "Delta Gothic One", cursive;
+  background-color: rgba(255, 255, 255, .5);
+  border-radius: 20px;
+  margin-bottom: .5rem;
+  border: 1px solid black;
 
 }
 
