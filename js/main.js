@@ -49,8 +49,8 @@ dataPromises.catch(function(){
 
 var generateMap = function(datasets, attArray) {
 
-  let width = window.innerWidth * .5,
-    height = 750;
+  let width = window.innerWidth * .6,
+    height = 775;
 
   const projection = d3.geoBonne() // because
     .center([-.11, 51.51]) // london, uk
