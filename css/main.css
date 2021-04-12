@@ -112,7 +112,13 @@ path {
 
 .map {
   border: 1px black solid;
+  border-radius: 20px;
   margin-left: 2em;
+}
+
+#map-container {
+  width: 65%;
+  padding: 3px;
 }
 
 .chart {
@@ -157,13 +163,15 @@ rect{
 }
 
 #sidebar{
-  width: 30%;
-}
-
-.info-panel{
+  width: 35%;
   background-color: white;
   border: 1px black solid;
   border-radius: 20px;
+}
+
+.info-panel{
+
+  width: 30%;
 }
 
 /* ==========================================================================

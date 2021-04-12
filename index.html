@@ -35,50 +35,28 @@
   </div>
 </div>
 
-<div class="row align-items-center">
-  <div class="col-sm-12 col-md-6">
-    <div id="map-container"></div>
+<div class="row align-content-top">
+  <div class="flex-row mr-2">
+    <div id="map-container" class="flex-column p-1"></div>
   </div>
-  <div class="col-sm-12 col-md-4 align-items-end d-block" id="sidebar">
-    <div id="info-panel" class="d-inline container align-items-end">
 
-        <div class="card d-block info-card w-100 mb-2" id="info-card-total">
-          <div class="card-header p-1">
-            <p class="lead info-header mb-1" id="info-header-total">Fly Tipping In London</p>
-          </div>
-          <div class="card-body info-body pb-1 pl-1" id="info-body-total">
-            Fly tipping, also called illegal dumping, occurs when rubbish, trash, or other refuse is
-            disposed of improperly in a public environment. Fly tipping is typically driven by household waste
-            and bulk items, left in surreptitious locations by householders or unlicensed waste collectors.
-          </div>
-        </div>
 
-      <div class="card float-right w-50">
-        <div id="myCarousel" class="carousel slide" data-ride="carousel">
-          <div class="carousel-inner">
-            <div class="carousel-item active">
-              <img class="d-block w-100 card-img" src="img/brent-tipping.jpg" alt="First slide" id="first">
-            </div>
-            <div class="carousel-item">
-              <img class="d-block w-100 h-50 card-img" src="img/stanton-flytipping.jpg" alt="Second slide" id="second">
-            </div>
-            <div class="carousel-item">
-              <img class="d-block w-100" src="img/enfield-dumping.jpg" alt="Third slide" id="third">
-            </div>
-            <div class="carousel-item">
-              <img class="d-block w-100" src="img/london-tipping.jpg" alt="Fourth slide" id="fourth">
-            </div>
+  <div class="d-inline-block align-items-center align-content-top" id="sidebar">
+    <div id="info-panel" class="d-inline col-md-2">
+      <div class="card flex-grow-0 ml-3 mr-3 mt-0 align-self-top info-card mb-2" id="info-card-total">
+        <div class="card-header p-1">
+          <p class="lead info-header mb-1" id="info-header-total">Fly Tipping In London</p>
         </div>
-          <a class="carousel-control-prev" href="#myCarousel" data-slide="prev">
-        <span class="carousel-control-prev-icon"></span>
-    </a>
-    <a class="carousel-control-next" href="#myCarousel" data-slide="next">
-        <span class="carousel-control-next-icon"></span>
-    </a>
+        <div class="card-body info-body p-1" id="info-body-total">
+          Fly tipping, also called illegal dumping, occurs when rubbish, trash, or other refuse is
+          disposed of improperly in a public environment. Fly tipping is typically driven by household waste
+          and bulk items, left in surreptitious locations by householders or unlicensed waste collectors.
+        </div>
       </div>
-      </div>
-      <div id="radio-buttons" class="card justify-content-end float-left mx-auto d-block mb-2">
-        <div class="card-header">
+
+      <div class="card-group ml-3 mr-3 flex-grow">
+      <div id="radio-buttons" class="card mr-3 float-left d-inline-block mb-2">
+        <div class="card-header p-1">
           <p class="lead mb-0">Select Data to Display</p>
         </div>
         <input type="radio" name="attr" value="Total Incidents" checked>
@@ -99,11 +77,45 @@
         <label for="prosecutions">Prosecutions</label><br>
       </div>
 
+        <div id="myCarousel" class="card float-right mb-2 ml-4 carousel slide align-items-end" data-interval="false">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img class="d-block w-100 card-img-top" src="img/brent-tipping.jpg" alt="First slide" id="first">
+              <span class="card-text"><em>40% of fly tipping incidents in the UK occur on roadways or streets, making these
+              locations the #1 destination for illegal dumping.</em></span>
+            </div>
+            <div class="carousel-item">
+              <img class="d-block w-100 card-img-top" src="img/stanton-flytipping.jpg" alt="Second slide" id="second">
+              <span class="card-text"><em>in 2018/19, 65% of fly tipping incidents involved household waste.  The most common size category
+              in that time was equivalent to a small van load.</em></span>
+            </div>
+            <div class="carousel-item">
+              <img class="d-block w-100 card-img-top" src="img/enfield-dumping.jpg" alt="Third slide" id="third">
+              <span class="card-text"><em>Fly tipping fines and penalties generated around 1.1m in revenue in 2019/20.
+              this is only a fraction of the costs incurred due to fly tipping.</em></span>
+            </div>
+            <div class="carousel-item">
+              <img class="d-block w-100 card-img-top" src="img/london-tipping.jpg" alt="Fourth slide" id="fourth">
+              <span class="card-text"><em>Many Councils offer waste disposal services for large items and other high-volume
+              needs.  Check with your Council before you put it on the street!</em></span>
+            </div>
+          </div>
+          <a class="carousel-control-prev" href="#myCarousel" data-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+          </a>
+          <a class="carousel-control-next" href="#myCarousel" data-slide="next">
+            <span class="carousel-control-next-icon"></span>
+          </a>
+        </div>
+      </div>
 
-      <div id="chart-box" class="d-flex align-items-baseline flex-column mt-auto float-right"></div>
+      <div class="container-fluid flex-grow p-0">
+      <div id="chart-box" class="d-flex align-items-center flex-column mt-auto mb-0"></div>
+        </div>
 
     </div>
   </div>
+</div>
 
   <!-- SCRIPT LINKS -->
   <script src="js/vendor/modernizr-3.11.2.min.js"></script>
