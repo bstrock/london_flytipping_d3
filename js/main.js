@@ -85,7 +85,7 @@ var generateMap = function(datasets, attArray) {
 
   // add a title
   let mapTitle = map.append("text")
-      .attr("x", 300)
+      .attr("x", width / 2)
       .attr("y", 30)
       .classed("mapTitle", true)
       .text("Fly Tipping in London Boroughs, 2018/19");
