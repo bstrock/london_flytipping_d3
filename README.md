@@ -3,7 +3,7 @@ This project, completed for Interactive Geovisualiation, is an interactive map o
 
 <h2>Link to project page</h2>
 
-[View the project here](https://bstrock.github.io/london_flytipping_d3_example)
+[View the project here](https://bstrock.github.io/london_flytipping_d3)
 
 <h2>Project Features</h2>
 
